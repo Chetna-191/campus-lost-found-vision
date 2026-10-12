@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login / Signup Preview — Campus Lost &amp; Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0d1b2e;
+    --navy-mid:#16283f;
+    --teal-deep:#12332e;
+    --gold:#e8c874;
+    --card-white:#ffffff;
+    --ink:#12203a;
+    --muted:#8a93a6;
+    --line:#e6e8ee;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#dfe2e8;
+    font-family:'Poppins',sans-serif;
+    padding:40px 16px;
+  }
+  .card{
+    width:100%;
+    max-width:920px;
+    min-height:600px;
+    background:var(--card-white);
+    border-radius:22px;
+    display:flex;
+    overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(13,27,46,.35);
+  }
+  /* LEFT ILLUSTRATED PANEL */
+  .illustration{
+    position:relative;
+    flex:1 1 45%;
+    background:
+      radial-gradient(circle at 30% 78%, rgba(232,200,116,.28), transparent 45%),
+      linear-gradient(200deg, var(--teal-deep) 0%, var(--navy-mid) 45%, var(--navy-deep) 100%);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    padding:44px 40px;
+  }
+  .illustration::before{
+    /* dotted star texture */
+    content:"";
+    position:absolute;
+    inset:0;
+    background-image:radial-gradient(rgba(255,255,255,.09) 1px, transparent 1px);
+    background-size:6px 6px;
+    mix-blend-mode:overlay;
+    opacity:.6;
+  }
+  .peaks{
+    position:absolute;
+    inset:0;
+  }
+  .peak{
+    position:absolute;
+    border-radius:50% 50% 0 0;
+    animation: drift 14s ease-in-out infinite;
+  }
+  .peak.p0{width:150%;height:85%;left:-25%;bottom:-14%;background:radial-gradient(ellipse at 50% 100%, #23425e, #0d1b2e 72%); opacity:.55; animation-duration:20s;}
+  .peak.p1{width:120%;height:70%;left:-10%;bottom:-10%;background:radial-gradient(ellipse at 55% 100%, #274863, #0d1b2e 70%); animation-duration:17s;}
+  .peak.p2{width:95%;height:56%;left:2%;bottom:-8%;background:radial-gradient(ellipse at 42% 100%, #2c5c4c, #12332e 75%); opacity:.92; animation-duration:15s; animation-delay:-4s;}
+  .peak.p3{width:70%;height:38%;left:12%;bottom:-6%;background:radial-gradient(ellipse at 45% 100%, #366b56, #17392d 78%); opacity:.95; animation-duration:12s; animation-delay:-2s;}
+  @keyframes drift{ 0%,100%{ transform:translateX(0) } 50%{ transform:translateX(2%) } }
+
+  .grove{
+    position:absolute;
+    left:6%; bottom:5%;
+    width:64%; height:48%;
+    background:
+      radial-gradient(circle at 18% 82%, #4a8a68 0 11px, transparent 12px),
+      radial-gradient(circle at 38% 72%, #3d7458 0 16px, transparent 17px),
+      radial-gradient(circle at 58% 86%, #4a8a68 0 10px, transparent 11px),
+      radial-gradient(circle at 74% 64%, #326049 0 18px, transparent 19px),
+      radial-gradient(circle at 28% 52%, #427a5c 0 14px, transparent 15px),
+      radial-gradient(circle at 53% 44%, #386c52 0 12px, transparent 13px),
+      radial-gradient(circle at 85% 78%, #3d7458 0 9px, transparent 10px);
+    filter: blur(.3px) drop-shadow(0 0 14px rgba(74,138,104,.25));
+  }
+  .fireflies span{
+    position:absolute;
+    width:4px;height:4px;
+    border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 0 10px 3px rgba(232,200,116,.85), 0 0 22px 8px rgba(232,200,116,.35);
+    animation: twinkle 3.5s ease-in-out infinite, floaty 6s ease-in-out infinite;
+  }
+  @keyframes twinkle{ 0%,100%{opacity:.2} 50%{opacity:1} }
+  @keyframes floaty{ 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-10px) } }
+
+  .lantern{
+    position:absolute;
+    left:38%; bottom:38%;
+    width:16px; height:13px;
+    background:radial-gradient(circle at 40% 35%, #fff2c9, var(--gold) 70%);
+    border-radius:3px 3px 7px 7px;
+    box-shadow:0 0 30px 10px rgba(232,200,116,.75), 0 0 60px 22px rgba(232,200,116,.35);
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+  .lantern::before{
+    content:"";
+    position:absolute;
+    top:-6px; left:1px;
+    width:14px; height:6px;
+    background:#fdeebb;
+    border-radius:4px 4px 0 0;
+  }
+  @keyframes glow-pulse{
+    0%,100%{ box-shadow:0 0 30px 10px rgba(232,200,116,.75), 0 0 60px 22px rgba(232,200,116,.35); }
+    50%{ box-shadow:0 0 40px 16px rgba(232,200,116,.95), 0 0 80px 30px rgba(232,200,116,.5); }
+  }
+  .welcome-label{
+    position:relative;
+    z-index:2;
+    color:#f2f4f8;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:26px;
+    letter-spacing:6px;
+    text-transform:uppercase;
+    margin:0;
+  }
+  .credit{
+    position:relative;
+    z-index:2;
+    margin-top:auto;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    color:#cfd6e4;
+    font-size:12px;
+  }
+  .credit .dot{
+    width:34px;height:34px;border-radius:50%;
+    background:linear-gradient(135deg,#4a5c78,#243654);
+    flex:none;
+  }
+
+  /* RIGHT FORM PANEL */
+  .form-side{
+    flex:1 1 55%;
+    padding:56px 56px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    position:relative;
+  }
+  .form-inner{ max-width:360px; margin:0 auto; width:100%; }
+  h1.form-title{
+    font-family:'Cormorant Garamond', serif;
+    font-weight:600;
+    font-size:44px;
+    color:var(--ink);
+    margin:0 0 34px 0;
+  }
+  .field{
+    position:relative;
+    margin-bottom:26px;
+  }
+  .field label{
+    display:block;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .field input{
+    width:100%;
+    border:none;
+    border-bottom:1.5px solid var(--line);
+    padding:8px 2px 10px 2px;
+    font-size:15px;
+    font-family:'Poppins',sans-serif;
+    color:var(--ink);
+    outline:none;
+    background:transparent;
+    transition:border-color .2s;
+  }
+  .field input::placeholder{ color:#b8bfcc; font-weight:300; }
+  .field input:focus{ border-bottom-color:var(--navy-deep); }
+  .field .hint{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:5px;
+  }
+  .field .hint.error{ color:#b23b3b; }
+  .row-between{
+    display:flex; justify-content:space-between; align-items:baseline;
+  }
+  .forgot{
+    font-size:12px; color:var(--navy-deep); text-decoration:none; font-weight:500;
+  }
+  .submit-btn{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:30px;
+    background:var(--navy-deep);
+    color:#fff;
+    font-size:15px;
+    font-weight:500;
+    letter-spacing:.03em;
+    cursor:pointer;
+    margin-top:8px;
+    transition:background .2s, transform .15s;
+    font-family:'Poppins',sans-serif;
+  }
+  .submit-btn:hover{ background:#1a2e4a; transform:translateY(-1px); }
+  .switch-line{
+    text-align:center;
+    font-size:13px;
+    color:var(--muted);
+    margin-top:26px;
+  }
+  .switch-line a{ color:var(--navy-deep); font-weight:600; text-decoration:none; cursor:pointer;}
+
+  .panel{ display:none; }
+  .panel.active{ display:block; animation:fade .35s ease; }
+  @keyframes fade{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
+
+  @media (max-width:760px){
+    .card{ flex-direction:column; }
+    .illustration{ min-height:220px; }
+    .form-side{ padding:40px 28px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="illustration">
+      <div class="peaks">
+        <div class="peak p0"></div>
+        <div class="peak p1"></div>
+        <div class="peak p2"></div>
+        <div class="peak p3"></div>
+        <div class="grove"></div>
+        <div class="lantern"></div>
+      </div>
+      <div class="fireflies">
+        <span style="left:22%; top:28%; animation-delay:.2s;"></span>
+        <span style="left:60%; top:16%; animation-delay:1.1s;"></span>
+        <span style="left:74%; top:52%; animation-delay:2s;"></span>
+        <span style="left:35%; top:58%; animation-delay:.7s;"></span>
+        <span style="left:50%; top:72%; animation-delay:1.6s;"></span>
+        <span style="left:14%; top:45%; animation-delay:2.4s;"></span>
+        <span style="left:82%; top:32%; animation-delay:.5s;"></span>
+        <span style="left:44%; top:20%; animation-delay:1.9s;"></span>
+        <span style="left:66%; top:66%; animation-delay:3s;"></span>
+        <span style="left:28%; top:80%; animation-delay:1.3s;"></span>
+      </div>
+      <p class="welcome-label">Welcome</p>
+      <div class="credit">
+        <div class="dot"></div>
+        <div>
+          <div style="font-weight:600;color:#fff;">Campus Lost &amp; Found</div>
+          <div>Find what matters, faster</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-side">
+      <div class="form-inner">
+
+        <!-- LOGIN PANEL -->
+        <div class="panel active" id="loginPanel">
+          <h1 class="form-title">Login</h1>
+
+          <div class="field">
+            <label>Registration Number</label>
+            <input type="text" id="loginReg" placeholder="RA24110030105720" maxlength="16">
+            <div class="hint" id="regHint">Format: RA + 14 digits</div>
+          </div>
+
+          <div class="field">
+            <div class="row-between">
+              <label style="margin-bottom:6px;">Password</label>
+              <a class="forgot" href="#">Forgot password?</a>
+            </div>
+            <input type="password" placeholder="••••••••">
+          </div>
+
+          <button class="submit-btn">Login</button>
+
+          <p class="switch-line">Don't have an account? <a onclick="showPanel('signup')">Sign up</a></p>
+        </div>
+
+        <!-- SIGNUP PANEL -->
+        <div class="panel" id="signupPanel">
+          <h1 class="form-title">Sign Up</h1>
+
+          <div class="field">
+            <label>Full Name</label>
+            <input type="text" placeholder="Ananya Sharma">
+          </div>
+
+          <div class="field">
+            <label>Registration Number</label>
+            <input type="text" placeholder="RA24110030105720" maxlength="16">
+            <div class="hint">Format: RA + 14 digits</div>
+          </div>
+
+          <div class="field">
+            <label>Password</label>
+            <input type="password" placeholder="••••••••">
+            <div class="hint">Min 8 characters, 1 uppercase, 1 number, 1 special character</div>
+          </div>
+
+          <button class="submit-btn">Create Account</button>
+
+          <p class="switch-line">Already have an account? <a onclick="showPanel('login')">Login</a></p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script>
+function showPanel(which){
+  document.getElementById('loginPanel').classList.remove('active');
+  document.getElementById('signupPanel').classList.remove('active');
+  document.getElementById(which+'Panel').classList.add('active');
+}
+
+// live format hint for reg no
+const regInput = document.getElementById('loginReg');
+const regHint = document.getElementById('regHint');
+regInput.addEventListener('input', () => {
+  const val = regInput.value.toUpperCase();
+  regInput.value = val;
+  const valid = /^RA\d{0,14}$/.test(val);
+  regHint.textContent = valid ? 'Format: RA + 14 digits' : 'Must start with RA followed by 14 digits';
+  regHint.classList.toggle('error', !valid && val.length>0);
+});
+</script>
+</body>
+</html>
