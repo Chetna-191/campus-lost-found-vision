@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9A1A1B"/>
+      <stop offset="100%" stop-color="#E06C6B"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#grad)"/>
+
+  <!-- Inner border ring -->
+  <rect x="3" y="3" width="58" height="58" rx="15" fill="none" stroke="#ffffff" stroke-opacity="0.2" stroke-width="2"/>
+
+  <!-- Compass / Search Pin icon representing Campus Lost & Found -->
+  <g filter="url(#shadow)" stroke="#ffffff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- Magnifying Glass Lens / Pin Head -->
+    <circle cx="28" cy="27" r="14"/>
+    <!-- Handle -->
+    <line x1="38" y1="37" x2="51" y2="50"/>
+  </g>
+
+  <!-- Glowing Accent Dot in center of lens -->
+  <circle cx="28" cy="27" r="4.5" fill="#FBD4CF"/>
+  <circle cx="28" cy="27" r="2" fill="#9A1A1B"/>
+  
+  <!-- Sparkle highlight -->
+  <path d="M40 16 L41.5 19.5 L45 21 L41.5 22.5 L40 26 L38.5 22.5 L35 21 L38.5 19.5 Z" fill="#FFEAA7"/>
+</svg>

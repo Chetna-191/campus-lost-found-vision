@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile — Campus Lost &amp; Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Immediate authentication check
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.replace('/auth.html?mode=login');
+  }
+</script>
+<style>
+  :root{
+    --sand:#D1CDB2;
+    --sage:#677661;
+    --brick:#9A1A1B;
+    --coral:#E06C6B;
+    --peach:#EFA79A;
+    --blush:#FBD4CF;
+    --ink:#2b2b26;
+    --cream:#FBF8F2;
+    --card-bg:#ffffff;
+    --border-color:#e2dfd5;
+    --muted:#7d7d74;
+    --success:#2e7d32;
+    --success-bg:#edf7ed;
+    --error:#c62828;
+    --error-bg:#fde8e8;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  a{ text-decoration:none; color:inherit; }
+
+  /* NAVBAR */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 60px;
+    background:var(--cream);
+    border-bottom:1px solid rgba(209,205,178,.4);
+    position:sticky;
+    top:0;
+    z-index:100;
+  }
+  .logo{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--brick);
+    display:flex; align-items:center; gap:8px;
+    cursor:pointer;
+  }
+  .logo .dot{ width:9px;height:9px;border-radius:50%; background:var(--coral); }
+  .nav-links{ display:flex; gap:24px; align-items:center; }
+  .nav-links a{ color:var(--ink); font-size:14px; font-weight:500; opacity:.75; transition:opacity .2s, color .2s; }
+  .nav-links a:hover{ opacity:1; }
+  .nav-links a.active{ color:var(--brick); font-weight:600; opacity:1; }
+
+  .nav-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--coral); color:#fff; font-size:10px; font-weight:700;
+    min-width:18px; height:18px; border-radius:10px; padding:0 5px;
+    margin-left:4px; vertical-align:middle;
+  }
+
+  .user-badge{
+    font-size:14px; font-weight:600; color:var(--brick);
+    display:flex; align-items:center; gap:12px;
+  }
+  .btn-logout{
+    background:transparent; border:1px solid var(--brick); color:var(--brick);
+    padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+  }
+  .btn-logout:hover{ background:var(--brick); color:#fff; }
+
+  /* HERO HEADER */
+  .profile-hero{
+    background:linear-gradient(180deg, var(--cream) 0%, rgba(209,205,178,.35) 100%);
+    padding:40px 60px 32px 60px;
+    border-bottom:1px solid rgba(209,205,178,.4);
+    position:relative;
+    overflow:hidden;
+  }
+  .hero-blob{
+    position:absolute;
+    top:-80px; right:-60px;
+    width:340px; height:340px;
+    background:radial-gradient(circle, var(--blush) 0%, var(--peach) 60%, var(--coral) 100%);
+    border-radius:50%;
+    opacity:.3;
+    pointer-events:none;
+    filter:blur(30px);
+  }
+  .hero-inner{
+    max-width:1000px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    gap:28px;
+    position:relative;
+    z-index:2;
+  }
+  .avatar-large{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    background:linear-gradient(135deg, var(--brick), var(--coral));
+    color:#fff;
+    font-family:'Fraunces',serif;
+    font-size:36px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 8px 24px rgba(154,26,27,.22);
+    border:4px solid #fff;
+    flex-shrink:0;
+  }
+  .hero-text h1{
+    font-family:'Fraunces',serif;
+    font-size:32px;
+    font-weight:600;
+    margin:0 0 6px 0;
+    color:var(--ink);
+  }
+  .hero-text p{
+    margin:0;
+    font-size:14px;
+    color:var(--muted);
+  }
+  .reg-badge-hero{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:8px;
+    background:rgba(43,43,38,.07);
+    padding:4px 12px;
+    border-radius:12px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+    letter-spacing:.04em;
+  }
+
+  /* MAIN CONTENT */
+  .main-wrapper{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    padding:40px 20px 80px 20px;
+  }
+  .container{
+    width:100%;
+    max-width:1000px;
+  }
+
+  .grid-layout{
+    display:grid;
+    grid-template-columns:1.2fr 1fr;
+    gap:32px;
+    align-items:start;
+  }
+
+  @media (max-width:860px){
+    nav{ padding:18px 24px; }
+    .profile-hero{ padding:30px 24px; }
+    .hero-inner{ flex-direction:column; text-align:center; }
+    .grid-layout{ grid-template-columns:1fr; }
+  }
+
+  /* CARDS */
+  .card{
+    background:var(--card-bg);
+    border:1px solid var(--border-color);
+    border-radius:24px;
+    padding:32px;
+    box-shadow:0 10px 30px -10px rgba(43,43,38,.05);
+  }
+
+  .card-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:24px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--border-color);
+  }
+  .card-icon{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    background:rgba(154,26,27,.08);
+    color:var(--brick);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+  }
+  .card-title{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0;
+  }
+  .card-subtitle{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:2px 0 0 0;
+  }
+
+  /* FORMS & INPUTS */
+  .form-group{
+    margin-bottom:20px;
+  }
+  .form-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:540px){
+    .form-row{ grid-template-columns:1fr; }
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  label .req{
+    color:var(--brick);
+  }
+  label .optional{
+    font-size:11.5px;
+    color:var(--muted);
+    font-weight:400;
+  }
+
+  .input-wrap{
+    position:relative;
+    display:flex;
+    align-items:center;
+  }
+  .input-wrap svg.input-icon{
+    position:absolute;
+    left:14px;
+    width:18px;
+    height:18px;
+    color:var(--muted);
+    pointer-events:none;
+  }
+  .input-wrap input,
+  .input-wrap select{
+    width:100%;
+    padding:12px 14px 12px 42px;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    background:#faf8f3;
+    border:1px solid var(--border-color);
+    border-radius:12px;
+    outline:none;
+    transition:all .2s ease;
+  }
+  .input-wrap input:focus,
+  .input-wrap select:focus{
+    border-color:var(--brick);
+    background:#ffffff;
+    box-shadow:0 0 0 3px rgba(154,26,27,.1);
+  }
+
+  .input-wrap input:disabled,
+  .input-wrap input[readonly]{
+    background:rgba(209,205,178,.25);
+    color:#737368;
+    cursor:not-allowed;
+    border-color:rgba(209,205,178,.6);
+  }
+
+  .lock-badge{
+    position:absolute;
+    right:12px;
+    font-size:11px;
+    font-weight:600;
+    color:var(--muted);
+    background:rgba(43,43,38,.08);
+    padding:3px 8px;
+    border-radius:6px;
+    display:flex;
+    align-items:center;
+    gap:4px;
+  }
+
+  .toggle-pwd{
+    position:absolute;
+    right:12px;
+    background:transparent;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    padding:4px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .toggle-pwd:hover{
+    color:var(--ink);
+  }
+
+  .pwd-hints{
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:6px;
+    line-height:1.45;
+  }
+
+  /* BUTTONS */
+  .btn-primary{
+    background:var(--brick);
+    color:#fff;
+    border:none;
+    padding:13px 24px;
+    border-radius:14px;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    width:100%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:all .2s ease;
+    box-shadow:0 6px 16px rgba(154,26,27,.2);
+  }
+  .btn-primary:hover{
+    background:#7a1314;
+    transform:translateY(-1px);
+    box-shadow:0 8px 20px rgba(154,26,27,.28);
+  }
+  .btn-primary:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+    transform:none;
+  }
+
+  .btn-secondary-card{
+    background:#2b2b26;
+    color:#fff;
+    border:none;
+    padding:13px 24px;
+    border-radius:14px;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    width:100%;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    transition:all .2s ease;
+  }
+  .btn-secondary-card:hover{
+    background:#171714;
+    transform:translateY(-1px);
+  }
+  .btn-secondary-card:disabled{
+    opacity:.6;
+    cursor:not-allowed;
+    transform:none;
+  }
+
+  /* ALERTS */
+  .alert-box{
+    padding:12px 16px;
+    border-radius:12px;
+    font-size:13px;
+    font-weight:500;
+    margin-bottom:18px;
+    display:none;
+    align-items:center;
+    gap:8px;
+    animation:fadeIn .25s ease-out;
+  }
+  .alert-box.success{
+    background:var(--success-bg);
+    color:var(--success);
+    border:1px solid rgba(46,125,50,.3);
+    display:flex;
+  }
+  .alert-box.error{
+    background:var(--error-bg);
+    color:var(--error);
+    border:1px solid rgba(198,40,40,.3);
+    display:flex;
+  }
+
+  @keyframes fadeIn{
+    from{ opacity:0; transform:translateY(-4px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* FOOTER */
+  footer{
+    margin-top:auto;
+    text-align:center;
+    padding:24px 20px;
+    font-size:13px;
+    color:var(--muted);
+    border-top:1px solid rgba(209,205,178,.4);
+  }
+</style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <div class="logo" onclick="window.location.href='/dashboard.html'">
+      <div class="dot"></div>
+      Lost &amp; Found
+    </div>
+    <div class="nav-links">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/browse.html">Browse Items</a>
+      <a href="/my-reports.html">My Reports</a>
+      <a href="/notifications.html">Notifications <span class="nav-badge" id="navBadge" style="display:none;">0</span></a>
+      <a href="/profile.html" class="active">Profile</a>
+      <div class="user-badge">
+        <span id="navUserName">Hi, Student</span>
+        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO SECTION -->
+  <section class="profile-hero">
+    <div class="hero-blob"></div>
+    <div class="hero-inner">
+      <div class="avatar-large" id="avatarInitials">--</div>
+      <div class="hero-text">
+        <h1 id="heroName">Loading Profile...</h1>
+        <p id="heroEmailDepartment">Campus Student Account</p>
+        <div class="reg-badge-hero" id="heroRegNo">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+          <span id="heroRegText">Registration No: --</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAIN PROFILE FORMS -->
+  <main class="main-wrapper">
+    <div class="container">
+      <div class="grid-layout">
+
+        <!-- CARD 1: PERSONAL INFORMATION -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <h2 class="card-title">Personal Details</h2>
+              <p class="card-subtitle">Keep your contact information up-to-date for match recoveries</p>
+            </div>
+          </div>
+
+          <div id="profileAlert" class="alert-box"></div>
+
+          <form id="profileForm" onsubmit="handleProfileSubmit(event)">
+            <!-- REG NO (READ-ONLY) -->
+            <div class="form-group">
+              <label>Registration Number <span class="optional">(Permanent ID)</span></label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M7 21v-2a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v2"/></svg>
+                <input type="text" id="regNoInput" readonly>
+                <span class="lock-badge">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Locked
+                </span>
+              </div>
+            </div>
+
+            <!-- NAME ROW -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstNameInput">First Name <span class="req">*</span></label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <input type="text" id="firstNameInput" required placeholder="e.g. Rahul">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="lastNameInput">Last Name <span class="req">*</span></label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <input type="text" id="lastNameInput" required placeholder="e.g. Sharma">
+                </div>
+              </div>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="form-group">
+              <label for="emailInput">Campus Email Address</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                <input type="email" id="emailInput" placeholder="student@srmist.edu.in">
+              </div>
+            </div>
+
+            <!-- PHONE & DEPARTMENT ROW -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="phoneInput">Phone Number</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <input type="tel" id="phoneInput" placeholder="10-digit mobile">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="deptInput">Department</label>
+                <div class="input-wrap">
+                  <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  <input type="text" id="deptInput" placeholder="e.g. Computer Science, ECE">
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" id="saveProfileBtn" class="btn-primary">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Save Profile Changes
+            </button>
+          </form>
+        </div>
+
+        <!-- CARD 2: CHANGE PASSWORD -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon" style="background:rgba(43,43,38,.08); color:var(--ink);">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <div>
+              <h2 class="card-title">Security &amp; Password</h2>
+              <p class="card-subtitle">Manage your account authentication credentials</p>
+            </div>
+          </div>
+
+          <div id="passwordAlert" class="alert-box"></div>
+
+          <form id="passwordForm" onsubmit="handlePasswordSubmit(event)">
+            <!-- CURRENT PASSWORD -->
+            <div class="form-group">
+              <label for="oldPasswordInput">Current Password <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <input type="password" id="oldPasswordInput" required placeholder="Enter current password">
+                <button type="button" class="toggle-pwd" onclick="togglePasswordVisibility('oldPasswordInput')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- NEW PASSWORD -->
+            <div class="form-group">
+              <label for="newPasswordInput">New Password <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-1.5 1.5L10 13l-4 4-2-2 4-4 7.5-7.5M16 5l3 3"/></svg>
+                <input type="password" id="newPasswordInput" required placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special">
+                <button type="button" class="toggle-pwd" onclick="togglePasswordVisibility('newPasswordInput')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+              <div class="pwd-hints">
+                Requirements: Minimum 8 characters, at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special symbol (!@#$%^&amp;*).
+              </div>
+            </div>
+
+            <!-- CONFIRM NEW PASSWORD -->
+            <div class="form-group">
+              <label for="confirmPasswordInput">Confirm New Password <span class="req">*</span></label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <input type="password" id="confirmPasswordInput" required placeholder="Re-type new password">
+                <button type="button" class="toggle-pwd" onclick="togglePasswordVisibility('confirmPasswordInput')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" id="changePasswordBtn" class="btn-secondary-card">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Update Password
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    © 2026 Campus Lost &amp; Found · Built for our campus community
+  </footer>
+
+<script>
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadUserProfile();
+  loadUnreadCount();
+});
+
+function handleLogout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/auth.html?mode=login';
+}
+
+function showBoxAlert(elementId, message, type = 'success') {
+  const el = document.getElementById(elementId);
+  el.textContent = message;
+  el.className = `alert-box ${type}`;
+  el.style.display = 'flex';
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideBoxAlert(elementId) {
+  const el = document.getElementById(elementId);
+  el.style.display = 'none';
+}
+
+function togglePasswordVisibility(inputId) {
+  const input = document.getElementById(inputId);
+  if (input.type === 'password') {
+    input.type = 'text';
+  } else {
+    input.type = 'password';
+  }
+}
+
+async function loadUserProfile() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      handleLogout();
+      return;
+    }
+
+    if (!res.ok) throw new Error('Failed to load profile details');
+
+    currentUser = await res.json();
+    renderProfile(currentUser);
+
+  } catch (err) {
+    showBoxAlert('profileAlert', err.message, 'error');
+  }
+}
+
+function renderProfile(user) {
+  const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Student';
+  const firstInitial = (user.first_name || 'S')[0].toUpperCase();
+  const lastInitial = (user.last_name || '')[0] ? (user.last_name || '')[0].toUpperCase() : '';
+
+  // Navbar
+  document.getElementById('navUserName').textContent = `Hi, ${user.first_name || 'Student'}`;
+
+  // Hero section
+  document.getElementById('avatarInitials').textContent = `${firstInitial}${lastInitial}`;
+  document.getElementById('heroName').textContent = fullName;
+  document.getElementById('heroEmailDepartment').textContent = `${user.department || 'Campus Student'} ${user.email ? '· ' + user.email : ''}`;
+  document.getElementById('heroRegText').textContent = `Registration No: ${user.reg_no || '--'}`;
+
+  // Form fields
+  document.getElementById('regNoInput').value = user.reg_no || '';
+  document.getElementById('firstNameInput').value = user.first_name || '';
+  document.getElementById('lastNameInput').value = user.last_name || '';
+  document.getElementById('emailInput').value = user.email || '';
+  document.getElementById('phoneInput').value = user.phone || '';
+  document.getElementById('deptInput').value = user.department || '';
+}
+
+async function handleProfileSubmit(e) {
+  e.preventDefault();
+  hideBoxAlert('profileAlert');
+
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true;
+  btn.innerHTML = `
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    Saving changes...
+  `;
+
+  const body = {
+    first_name: document.getElementById('firstNameInput').value.trim(),
+    last_name: document.getElementById('lastNameInput').value.trim(),
+    email: document.getElementById('emailInput').value.trim(),
+    phone: document.getElementById('phoneInput').value.trim(),
+    department: document.getElementById('deptInput').value.trim()
+  };
+
+  try {
+    const res = await fetch('/api/auth/profile', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update profile');
+
+    currentUser = data.user;
+    // Update stored user in localStorage
+    localStorage.setItem('user', JSON.stringify(currentUser));
+
+    renderProfile(currentUser);
+    showBoxAlert('profileAlert', 'Profile updated successfully!', 'success');
+
+  } catch (err) {
+    showBoxAlert('profileAlert', err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save Profile Changes
+    `;
+  }
+}
+
+async function handlePasswordSubmit(e) {
+  e.preventDefault();
+  hideBoxAlert('passwordAlert');
+
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  const old_password = document.getElementById('oldPasswordInput').value;
+  const new_password = document.getElementById('newPasswordInput').value;
+  const confirm_new_password = document.getElementById('confirmPasswordInput').value;
+
+  if (new_password !== confirm_new_password) {
+    showBoxAlert('passwordAlert', 'New password and confirmation do not match.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('changePasswordBtn');
+  btn.disabled = true;
+  btn.innerHTML = `Updating password...`;
+
+  try {
+    const res = await fetch('/api/auth/change-password', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        old_password,
+        new_password,
+        confirm_new_password
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update password');
+
+    showBoxAlert('passwordAlert', 'Password updated successfully!', 'success');
+    document.getElementById('passwordForm').reset();
+
+  } catch (err) {
+    showBoxAlert('passwordAlert', err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Update Password
+    `;
+  }
+}
+
+async function loadUnreadCount() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch('/api/notifications/unread-count', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const navBadge = document.getElementById('navBadge');
+    if (navBadge) {
+      if (data.unread_count > 0) {
+        navBadge.textContent = data.unread_count;
+        navBadge.style.display = 'inline-flex';
+      } else {
+        navBadge.style.display = 'none';
+      }
+    }
+  } catch(e) {}
+}
+</script>
+<script src="/demo-bar.js"></script>
+</body>
+</html>

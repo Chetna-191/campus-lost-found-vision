@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications — Campus Lost &amp; Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Immediate authentication check
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.replace('/auth.html?mode=login');
+  }
+</script>
+<style>
+  :root{
+    --sand:#D1CDB2;
+    --sage:#677661;
+    --brick:#9A1A1B;
+    --coral:#E06C6B;
+    --peach:#EFA79A;
+    --blush:#FBD4CF;
+    --ink:#2b2b26;
+    --cream:#FBF8F2;
+    --card-bg:#ffffff;
+    --border-color:#e2dfd5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  a{ text-decoration:none; }
+
+  /* NAVBAR */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 60px;
+    background:var(--cream);
+    border-bottom:1px solid rgba(209,205,178,.4);
+  }
+  .logo{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--brick);
+    display:flex; align-items:center; gap:8px;
+    cursor:pointer;
+  }
+  .logo .dot{ width:9px;height:9px;border-radius:50%; background:var(--coral); }
+  .nav-links{ display:flex; gap:24px; align-items:center; }
+  .nav-links a{ color:var(--ink); font-size:14px; font-weight:500; opacity:.75; transition:opacity .2s; position:relative; }
+  .nav-links a:hover, .nav-links a.active{ opacity:1; color:var(--brick); font-weight:600; }
+  
+  .nav-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    background:var(--coral); color:#fff; font-size:10px; font-weight:700;
+    min-width:18px; height:18px; border-radius:10px; padding:0 5px;
+    margin-left:4px; vertical-align:middle;
+  }
+
+  .user-badge{
+    font-size:14px; font-weight:600; color:var(--brick);
+    display:flex; align-items:center; gap:12px;
+  }
+  .btn-logout{
+    background:transparent; border:1px solid var(--brick); color:var(--brick);
+    padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+  }
+  .btn-logout:hover{ background:var(--brick); color:#fff; }
+
+  /* MAIN WRAPPER */
+  .main-wrapper{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    padding:40px 20px 80px 20px;
+  }
+
+  .container{
+    width:100%;
+    max-width:860px;
+  }
+
+  /* HEADER */
+  .page-header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  .header-tag{
+    display:inline-block;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--brick);
+    font-weight:700;
+    background:rgba(154,26,27,.1);
+    border:1px solid rgba(154,26,27,.18);
+    padding:5px 12px;
+    border-radius:20px;
+    margin-bottom:8px;
+  }
+  h1.page-title{
+    font-family:'Fraunces',serif;
+    font-size:36px;
+    font-weight:600;
+    margin:0 0 4px 0;
+    color:var(--ink);
+  }
+  p.page-sub{
+    color:#6e6e66;
+    font-size:14px;
+    margin:0;
+  }
+
+  .header-actions{
+    display:flex;
+    gap:10px;
+  }
+  .btn-action{
+    background:#fff;
+    border:1px solid var(--border-color);
+    color:var(--ink);
+    padding:8px 16px;
+    border-radius:12px;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    transition:all .2s ease;
+  }
+  .btn-action:hover{
+    background:#faf8f3;
+    border-color:var(--sand);
+    color:var(--brick);
+  }
+
+  /* TABS */
+  .tabs-bar{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+    border-bottom:1px solid rgba(209,205,178,.5);
+    padding-bottom:12px;
+  }
+  .tab-btn{
+    background:transparent;
+    border:none;
+    padding:8px 16px;
+    border-radius:20px;
+    font-family:'Poppins',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    color:#737368;
+    cursor:pointer;
+    transition:all .2s ease;
+  }
+  .tab-btn.active{
+    background:var(--ink);
+    color:#fff;
+    font-weight:600;
+  }
+  .tab-btn:hover:not(.active){
+    background:rgba(209,205,178,.3);
+    color:var(--ink);
+  }
+
+  /* NOTIFICATION LIST */
+  .notif-list{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .notif-card{
+    background:var(--card-bg);
+    border-radius:18px;
+    padding:20px 24px;
+    border:1px solid var(--border-color);
+    display:flex;
+    align-items:flex-start;
+    gap:18px;
+    cursor:pointer;
+    transition:all .25s cubic-bezier(0.16, 1, 0.3, 1);
+    position:relative;
+    box-shadow:0 4px 12px -4px rgba(43,43,38,.04);
+  }
+  .notif-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 24px -8px rgba(154,26,27,.12);
+    border-color:var(--sand);
+  }
+  .notif-card.unread{
+    background:linear-gradient(135deg, #ffffff 0%, #fdfbf7 100%);
+    border-color:rgba(224,108,107,.4);
+    box-shadow:0 8px 20px -6px rgba(224,108,107,.15);
+  }
+  .notif-card.unread::before{
+    content:'';
+    position:absolute;
+    left:0;
+    top:18px;
+    bottom:18px;
+    width:4px;
+    border-radius:0 4px 4px 0;
+    background:var(--coral);
+  }
+
+  .notif-icon{
+    width:44px;
+    height:44px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-shrink:0;
+    background:rgba(224,108,107,.12);
+    color:var(--brick);
+  }
+  .notif-card.is-match .notif-icon{
+    background:linear-gradient(135deg, rgba(224,108,107,.18) 0%, rgba(239,167,154,.25) 100%);
+    color:var(--brick);
+  }
+  .notif-icon svg{
+    width:22px;
+    height:22px;
+  }
+
+  .notif-body{
+    flex:1;
+  }
+  .notif-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:6px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .notif-title{
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .notif-time{
+    font-size:11px;
+    color:#94948a;
+    font-weight:400;
+  }
+  .notif-message{
+    font-size:13.5px;
+    color:#4a4a42;
+    line-height:1.5;
+    margin:0 0 10px 0;
+  }
+
+  .notif-footer{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .badge-match-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--brick);
+    background:rgba(154,26,27,.08);
+    padding:4px 12px;
+    border-radius:20px;
+    border:1px solid rgba(154,26,27,.15);
+    transition:background .2s;
+  }
+  .notif-card:hover .badge-match-link{
+    background:var(--brick);
+    color:#fff;
+  }
+  .badge-unread-dot{
+    display:inline-block;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--coral);
+  }
+
+  /* EMPTY STATE */
+  .empty-state{
+    text-align:center;
+    padding:80px 20px;
+    background:var(--card-bg);
+    border-radius:24px;
+    border:1px dashed var(--border-color);
+  }
+  .empty-icon{
+    width:64px;
+    height:64px;
+    margin:0 auto 16px auto;
+    border-radius:20px;
+    background:rgba(209,205,178,.3);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--sage);
+  }
+  .empty-title{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 6px 0;
+  }
+  .empty-text{
+    color:#7a7a70;
+    font-size:14px;
+    max-width:380px;
+    margin:0 auto;
+    line-height:1.5;
+  }
+
+  footer{
+    background:var(--ink);
+    color:#d8d4c8;
+    padding:30px 60px;
+    text-align:center;
+    font-size:12px;
+    margin-top:auto;
+  }
+
+  @media (max-width:720px){
+    nav{ padding:18px 24px; }
+    .main-wrapper{ padding:24px 16px 60px 16px; }
+    .page-header{ flex-direction:column; align-items:flex-start; }
+    h1.page-title{ font-size:28px; }
+  }
+</style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo" onclick="window.location.href='/dashboard.html'"><span class="dot"></span>Campus Lost &amp; Found</div>
+    <div class="nav-links" id="navContainer">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/browse.html">Browse Items</a>
+      <a href="/my-reports.html">My Reports</a>
+      <a href="/notifications.html" class="active">Notifications <span class="nav-badge" id="navBadge" style="display:none;">0</span></a>
+      <a href="/profile.html">Profile</a>
+      <a href="/report-lost.html">Report Lost</a>
+      <a href="/report-found.html">Report Found</a>
+      <div class="user-badge" id="userBadge">
+        <span id="userName">User</span>
+        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-wrapper">
+    <div class="container">
+
+      <div class="page-header">
+        <div>
+          <span class="header-tag">Activity &amp; Matches</span>
+          <h1 class="page-title">Notifications</h1>
+          <p class="page-sub">Stay informed on AI match alerts, item updates, and report status.</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-action" onclick="markAllAsRead()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Mark all read
+          </button>
+        </div>
+      </div>
+
+      <div class="tabs-bar">
+        <button class="tab-btn active" onclick="setFilter('all', this)">All</button>
+        <button class="tab-btn" onclick="setFilter('unread', this)">Unread</button>
+        <button class="tab-btn" onclick="setFilter('matches', this)">AI Matches</button>
+      </div>
+
+      <div id="notifList" class="notif-list">
+        <div style="text-align:center; padding:40px; color:#8a8a80;">Loading notifications...</div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Campus Lost &amp; Found · Built for our campus community
+  </footer>
+
+<script>
+let allNotifications = [];
+let currentFilter = 'all';
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupUserBadge();
+  fetchNotifications();
+});
+
+function setupUserBadge() {
+  const userJson = localStorage.getItem('user');
+  if (userJson) {
+    try {
+      const user = JSON.parse(userJson);
+      const name = user.first_name || 'Student';
+      document.getElementById('userName').textContent = `Hi, ${name}`;
+    } catch(e) {}
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/auth.html?mode=login';
+}
+
+async function fetchNotifications() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch('/api/notifications', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error('Failed to load notifications');
+
+    allNotifications = await res.json();
+    renderNotifications();
+    updateUnreadBadge();
+  } catch (err) {
+    console.error(err);
+    document.getElementById('notifList').innerHTML = `
+      <div class="empty-state">
+        <div class="empty-title">Error loading notifications</div>
+        <div class="empty-text">${escapeHtml(err.message)}</div>
+      </div>`;
+  }
+}
+
+function updateUnreadBadge() {
+  const unreadCount = allNotifications.filter(n => !n.is_read).length;
+  const navBadge = document.getElementById('navBadge');
+  if (navBadge) {
+    if (unreadCount > 0) {
+      navBadge.textContent = unreadCount;
+      navBadge.style.display = 'inline-flex';
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const listEl = document.getElementById('notifList');
+
+  let filtered = allNotifications;
+  if (currentFilter === 'unread') {
+    filtered = allNotifications.filter(n => !n.is_read);
+  } else if (currentFilter === 'matches') {
+    filtered = allNotifications.filter(n => n.match_id !== null || (n.message && n.message.toLowerCase().includes('match')));
+  }
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="empty-title">No notifications</div>
+        <div class="empty-text">${currentFilter === 'unread' ? 'You have caught up with all notifications!' : 'When matches or updates occur on your reports, they will show up here.'}</div>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(notif => {
+    const isUnread = !notif.is_read;
+    const isMatch = notif.match_id !== null || (notif.message && notif.message.toLowerCase().includes('match'));
+    const timeStr = formatRelativeTime(notif.created_at);
+
+    return `
+      <div class="notif-card ${isUnread ? 'unread' : ''} ${isMatch ? 'is-match' : ''}" onclick="handleNotifClick(${notif.notification_id}, ${notif.match_id})">
+        <div class="notif-icon">
+          ${isMatch ? `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>
+          ` : `
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          `}
+        </div>
+        <div class="notif-body">
+          <div class="notif-header">
+            <span class="notif-title">${isMatch ? '✨ AI Match Alert' : 'Campus Notification'}</span>
+            <span class="notif-time">${timeStr}</span>
+          </div>
+          <p class="notif-message">${escapeHtml(notif.message)}</p>
+          <div class="notif-footer">
+            ${notif.match_id ? `
+              <span class="badge-match-link">
+                Review Match #${notif.match_id}
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </span>
+            ` : ''}
+            ${isUnread ? `<span class="badge-unread-dot" title="Unread"></span>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function handleNotifClick(notifId, matchId) {
+  const token = localStorage.getItem('token');
+  if (token) {
+    // Mark as read in background
+    fetch(`/api/notifications/${notifId}/read`, {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).catch(console.error);
+
+    // Update local state
+    const notif = allNotifications.find(n => n.notification_id === notifId);
+    if (notif) notif.is_read = true;
+    updateUnreadBadge();
+  }
+
+  // Navigate to match page if this notification is for a match
+  if (matchId) {
+    window.location.href = `/match.html?id=${matchId}`;
+  } else {
+    renderNotifications();
+  }
+}
+
+async function markAllAsRead() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    await fetch('/api/notifications/read-all', {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    allNotifications.forEach(n => n.is_read = true);
+    renderNotifications();
+    updateUnreadBadge();
+  } catch (err) {
+    console.error('Error marking all as read:', err);
+  }
+}
+
+function formatRelativeTime(dateStr) {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffSec = Math.floor((now - date) / 1000);
+
+  if (diffSec < 60) return 'Just now';
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+  if (diffSec < 604800) return `${Math.floor(diffSec / 86400)}d ago`;
+
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+</script>
+<script src="/demo-bar.js"></script>
+</body>
+</html>

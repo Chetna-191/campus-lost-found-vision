@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Landing Page Preview — Campus Lost &amp; Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sand:#D1CDB2;
+    --sage:#677661;
+    --brick:#9A1A1B;
+    --coral:#E06C6B;
+    --peach:#EFA79A;
+    --blush:#FBD4CF;
+    --ink:#2b2b26;
+    --cream:#FBF8F2;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+  }
+  a{ text-decoration:none; }
+
+  /* NAVBAR */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 60px;
+    background:var(--cream);
+  }
+  .logo{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--brick);
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo .dot{ width:9px;height:9px;border-radius:50%; background:var(--coral); }
+  .nav-links{ display:flex; gap:34px; align-items:center; }
+  .nav-links a{ color:var(--ink); font-size:14px; font-weight:500; opacity:.75; }
+  .nav-links a:hover{ opacity:1; }
+  .nav-cta{
+    background:var(--brick); color:#fff !important; opacity:1 !important;
+    padding:10px 22px; border-radius:30px; font-size:13px;
+  }
+
+  /* HERO */
+  .hero{
+    position:relative;
+    padding:70px 60px 90px 60px;
+    background:linear-gradient(180deg, var(--cream) 0%, var(--sand) 120%);
+    overflow:hidden;
+  }
+  .hero-inner{
+    max-width:640px;
+    position:relative; z-index:2;
+  }
+  .eyebrow{
+    display:inline-block;
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--sage); font-weight:600;
+    background:rgba(103,118,97,.1);
+    padding:6px 14px; border-radius:20px;
+    margin-bottom:22px;
+  }
+  h1.hero-title{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:52px;
+    line-height:1.08;
+    margin:0 0 22px 0;
+    color:var(--ink);
+  }
+  h1.hero-title em{ color:var(--brick); font-style:italic; }
+  .hero-sub{
+    font-size:16px; line-height:1.6; color:#5a5a52;
+    max-width:460px; margin-bottom:36px;
+  }
+  .hero-actions{ display:flex; gap:16px; flex-wrap:wrap; }
+  .btn{
+    padding:15px 28px; border-radius:30px; font-size:14px; font-weight:600;
+    display:inline-flex; align-items:center; gap:8px;
+    border:none; cursor:pointer; font-family:'Poppins',sans-serif;
+  }
+  .btn-primary{ background:var(--brick); color:#fff; }
+  .btn-primary:hover{ background:#7f1516; }
+  .btn-secondary{ background:#fff; color:var(--sage); border:1.5px solid var(--sage); }
+  .btn-secondary:hover{ background:var(--sage); color:#fff; }
+
+  .hero-blob{
+    position:absolute;
+    top:-60px; right:-80px;
+    width:520px; height:520px;
+    background:radial-gradient(circle at 35% 35%, var(--blush), var(--peach) 55%, var(--coral) 100%);
+    border-radius:42% 58% 65% 35% / 45% 40% 60% 55%;
+    opacity:.85;
+    z-index:1;
+  }
+  .hero-card{
+    position:absolute;
+    right:70px; top:110px;
+    width:230px;
+    background:#fff;
+    border-radius:18px;
+    box-shadow:0 20px 40px -12px rgba(43,43,38,.25);
+    padding:16px;
+    z-index:2;
+    transform:rotate(4deg);
+  }
+  .hero-card .thumb{
+    width:100%; height:120px; border-radius:12px;
+    background:linear-gradient(135deg,var(--peach),var(--coral));
+    margin-bottom:12px;
+  }
+  .hero-card .tag{
+    font-size:10px; letter-spacing:.05em; text-transform:uppercase;
+    color:var(--brick); font-weight:700; margin-bottom:4px;
+  }
+  .hero-card .title{ font-size:14px; font-weight:600; margin-bottom:2px; }
+  .hero-card .meta{ font-size:11px; color:#8a8a80; }
+
+  /* STATS STRIP */
+  .stats{
+    display:flex; justify-content:center; gap:70px;
+    padding:40px 20px; background:var(--sage);
+    flex-wrap:wrap;
+  }
+  .stat{ text-align:center; color:#fff; }
+  .stat .num{ font-family:'Fraunces',serif; font-size:34px; font-weight:600; }
+  .stat .label{ font-size:12px; opacity:.85; letter-spacing:.04em; text-transform:uppercase; margin-top:4px;}
+
+  /* RECENT FOUND ITEMS */
+  .section{ padding:80px 60px; }
+  .section-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:36px; flex-wrap:wrap; gap:16px;
+  }
+  .section-head h2{
+    font-family:'Fraunces',serif; font-size:30px; font-weight:600; margin:0;
+  }
+  .section-head p{ color:#8a8a80; font-size:14px; margin-top:6px;}
+  .view-all{ color:var(--brick); font-weight:600; font-size:14px; }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:22px;
+  }
+  .item-card{
+    background:#fff;
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:0 10px 26px -14px rgba(43,43,38,.18);
+    transition:transform .2s;
+  }
+  .item-card:hover{ transform:translateY(-5px); }
+  .item-photo{ height:130px; }
+  .item-card:nth-child(1) .item-photo{ background:linear-gradient(135deg,var(--blush),var(--peach)); }
+  .item-card:nth-child(2) .item-photo{ background:linear-gradient(135deg,var(--sand),var(--sage)); }
+  .item-card:nth-child(3) .item-photo{ background:linear-gradient(135deg,var(--peach),var(--coral)); }
+  .item-card:nth-child(4) .item-photo{ background:linear-gradient(135deg,var(--coral),var(--brick)); }
+  .item-body{ padding:16px; }
+  .item-body .name{ font-weight:600; font-size:14px; margin-bottom:4px; }
+  .item-body .loc{ font-size:12px; color:#8a8a80; }
+  .status-pill{
+    display:inline-block; margin-top:10px;
+    font-size:10px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+    background:rgba(103,118,97,.12); color:var(--sage);
+    padding:4px 10px; border-radius:20px;
+  }
+
+  footer{
+    background:var(--ink); color:#d8d4c8;
+    padding:40px 60px; text-align:center; font-size:12px;
+  }
+
+  @media (max-width:900px){
+    .grid{ grid-template-columns:repeat(2,1fr); }
+    .hero-card{ display:none; }
+    nav, .hero, .section{ padding-left:24px; padding-right:24px; }
+    .nav-links{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo"><span class="dot"></span>Campus Lost &amp; Found</div>
+    <div class="nav-links">
+      <a href="#">Browse Items</a>
+      <a href="#">How it works</a>
+      <a href="#">Login</a>
+      <a href="#" class="nav-cta">Sign up</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-blob"></div>
+    <div class="hero-card">
+      <div class="thumb"></div>
+      <div class="tag">Found · Today</div>
+      <div class="title">Blue Water Bottle</div>
+      <div class="meta">Near Library</div>
+    </div>
+    <div class="hero-inner">
+      <span class="eyebrow">For everyone on campus</span>
+      <h1 class="hero-title">Lost it? <em>Find it.</em><br>Found it? Return it.</h1>
+      <p class="hero-sub">Report a lost item or upload a found one — our system matches photos automatically and lets you know the moment there's a match.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary">Report Lost Item</button>
+        <button class="btn btn-secondary">Report Found Item</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><div class="num">128</div><div class="label">Items Reported</div></div>
+    <div class="stat"><div class="num">76</div><div class="label">Successful Matches</div></div>
+    <div class="stat"><div class="num">6</div><div class="label">Campus Locations</div></div>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <h2>Recently Found</h2>
+        <p>Items reported by students in the last few days</p>
+      </div>
+      <a class="view-all" href="#">Browse all →</a>
+    </div>
+    <div class="grid">
+      <div class="item-card">
+        <div class="item-photo"></div>
+        <div class="item-body">
+          <div class="name">Water Bottle</div>
+          <div class="loc">Library · Today</div>
+          <span class="status-pill">Unclaimed</span>
+        </div>
+      </div>
+      <div class="item-card">
+        <div class="item-photo"></div>
+        <div class="item-body">
+          <div class="name">Black Backpack</div>
+          <div class="loc">Canteen · Yesterday</div>
+          <span class="status-pill">Unclaimed</span>
+        </div>
+      </div>
+      <div class="item-card">
+        <div class="item-photo"></div>
+        <div class="item-body">
+          <div class="name">Student ID Card</div>
+          <div class="loc">Main Building · 2 days ago</div>
+          <span class="status-pill">Unclaimed</span>
+        </div>
+      </div>
+      <div class="item-card">
+        <div class="item-photo"></div>
+        <div class="item-body">
+          <div class="name">Earphones</div>
+          <div class="loc">Hostel · 3 days ago</div>
+          <span class="status-pill">Unclaimed</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 Campus Lost &amp; Found · Built for our campus community
+  </footer>
+
+</body>
+</html>
