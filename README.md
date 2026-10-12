@@ -2,6 +2,31 @@
 
 An AI-powered campus lost and found management platform designed to automate item recovery across university grounds. The system combines modern web technologies with computer vision to automatically detect item categories and compute visual similarity between lost and found belongings. It provides students and campus staff with real-time match notifications, secure verification workflows, and intuitive reporting dashboards.
 
+## Architecture and Tech Stack
+
+The platform is designed with a decoupled microservice architecture:
+
+```
+[ Frontend: Vanilla HTML/CSS/JS (Mobile-Responsive) ]
+                       |
+                       v
+    [ Backend: Node.js + Express.js API (Port 5050) ]
+        |                              |
+        v                              v
+[ Supabase PostgreSQL + RLS ]   [ AI Microservice: FastAPI (Port 8000) ]
+[ Supabase Cloud Storage    ]          |-- YOLOv8: Object Detection
+                                       `-- OpenAI CLIP: Visual Embeddings & Cosine Similarity
+```
+
+### Core Technologies:
+- **Frontend**: Semantic HTML5, Vanilla CSS3 (Custom warm design system, Fraunces serif and Poppins typography), Vanilla JavaScript (Fetch API).
+- **Backend API**: Node.js, Express.js, Multer for image processing, JWT authentication, and bcryptjs password encryption.
+- **Database & Storage**: Supabase PostgreSQL with Row Level Security (RLS) policies and Supabase Storage for item photo management.
+- **AI Microservice**: Python FastAPI, Uvicorn, PyTorch.
+- **Computer Vision Models**:
+  - **YOLOv8 (`yolov8n.pt`)**: Real-time object detection and automated category tagging.
+  - **OpenAI CLIP (`openai/clip-vit-base-patch32`)**: Deep feature vector embedding generation and cosine similarity calculation for visual matching.
+
 ## Setup and Run Instructions
 
 ### 1. Environment Configuration
