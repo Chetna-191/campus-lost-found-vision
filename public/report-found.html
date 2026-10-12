@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Report Found Item — Campus Lost &amp; Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>
+  // Immediate authentication check
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.replace('/auth.html?mode=login');
+  }
+</script>
+<style>
+  :root{
+    --sand:#D1CDB2;
+    --sage:#677661;
+    --brick:#9A1A1B;
+    --coral:#E06C6B;
+    --peach:#EFA79A;
+    --blush:#FBD4CF;
+    --ink:#2b2b26;
+    --cream:#FBF8F2;
+    --card-bg:#ffffff;
+    --border-color:#e2dfd5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  a{ text-decoration:none; }
+
+  /* NAVBAR */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 60px;
+    background:var(--cream);
+    border-bottom:1px solid rgba(209,205,178,.4);
+  }
+  .logo{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--brick);
+    display:flex; align-items:center; gap:8px;
+    cursor:pointer;
+  }
+  .logo .dot{ width:9px;height:9px;border-radius:50%; background:var(--coral); }
+  .nav-links{ display:flex; gap:24px; align-items:center; }
+  .nav-links a{ color:var(--ink); font-size:14px; font-weight:500; opacity:.75; transition:opacity .2s; }
+  .nav-links a:hover{ opacity:1; }
+  .user-badge{
+    font-size:14px; font-weight:600; color:var(--brick);
+    display:flex; align-items:center; gap:12px;
+  }
+  .btn-logout{
+    background:transparent; border:1px solid var(--brick); color:var(--brick);
+    padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+  }
+  .btn-logout:hover{ background:var(--brick); color:#fff; }
+
+  /* MAIN CONTAINER */
+  .main-wrapper{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:40px 20px 80px 20px;
+  }
+
+  .form-container{
+    width:100%;
+    max-width:680px;
+    background:var(--card-bg);
+    border-radius:24px;
+    padding:44px 48px;
+    box-shadow:0 24px 50px -16px rgba(103,118,97,.14), 0 8px 20px -10px rgba(43,43,38,.08);
+    border:1px solid rgba(103,118,97,.25);
+    animation: fadeInUp 0.45s ease-out both;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .back-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--sage);
+    margin-bottom:20px;
+    transition:transform .2s ease, color .2s ease;
+  }
+  .back-link:hover{
+    color:#4a5746;
+    transform:translateX(-3px);
+  }
+
+  .header-tag{
+    display:inline-block;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--sage);
+    font-weight:700;
+    background:rgba(103,118,97,.12);
+    border:1px solid rgba(103,118,97,.2);
+    padding:5px 12px;
+    border-radius:20px;
+    margin-bottom:12px;
+  }
+
+  h1.page-title{
+    font-family:'Fraunces',serif;
+    font-size:34px;
+    font-weight:600;
+    margin:0 0 8px 0;
+    color:var(--ink);
+  }
+  p.page-sub{
+    color:#6e6e66;
+    font-size:14px;
+    margin:0 0 32px 0;
+    line-height:1.5;
+  }
+
+  /* FORM STYLING */
+  .form-group{
+    margin-bottom:22px;
+  }
+  .form-row{
+    display:flex;
+    gap:18px;
+  }
+  .form-row .form-group{
+    flex:1;
+  }
+
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:#5a5a52;
+    margin-bottom:8px;
+  }
+  label span.req{
+    color:var(--sage);
+  }
+
+  input[type="text"],
+  input[type="date"],
+  select,
+  textarea{
+    width:100%;
+    padding:12px 16px;
+    border-radius:12px;
+    border:1.5px solid var(--border-color);
+    background:#faf9f5;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    outline:none;
+    transition:border-color .2s ease, box-shadow .2s ease, background .2s ease, transform .15s ease;
+  }
+  input[type="text"]:focus,
+  input[type="date"]:focus,
+  select:focus,
+  textarea:focus{
+    border-color:var(--sage);
+    background:#fff;
+    box-shadow:0 0 0 3.5px rgba(103,118,97,.16);
+  }
+  textarea{
+    resize:vertical;
+    min-height:105px;
+    line-height:1.5;
+  }
+  select{
+    appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23677661' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:38px;
+    cursor:pointer;
+  }
+
+  /* PHOTO UPLOAD DRAG & DROP */
+  .upload-area{
+    border:2px dashed #b8c1b3;
+    border-radius:14px;
+    padding:24px 20px;
+    text-align:center;
+    background:#fbfcfb;
+    cursor:pointer;
+    transition:border-color .25s ease, background .25s ease, transform .2s ease, box-shadow .2s ease;
+    position:relative;
+  }
+  .upload-area.dragover{
+    border-color:var(--sage);
+    background:rgba(103,118,97,.12);
+    transform:scale(1.01);
+  }
+  .upload-area:hover{
+    border-color:var(--sage);
+    background:#f6f9f5;
+    transform:translateY(-2px);
+    box-shadow:0 10px 22px -10px rgba(103,118,97,.15);
+  }
+  .upload-icon{
+    width:42px;
+    height:42px;
+    border-radius:50%;
+    background:rgba(103,118,97,.14);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 10px auto;
+    color:var(--sage);
+    transition:transform .2s ease;
+  }
+  .upload-area:hover .upload-icon{
+    transform:scale(1.08);
+  }
+  .upload-icon svg{
+    width:22px;
+    height:22px;
+  }
+  .upload-text{
+    font-size:13px;
+    color:var(--ink);
+    font-weight:500;
+  }
+  .upload-text span{
+    color:var(--sage);
+    font-weight:600;
+    text-decoration:underline;
+  }
+  .upload-hint{
+    font-size:11px;
+    color:#8a8a80;
+    margin-top:4px;
+  }
+  #photoInput{
+    display:none;
+  }
+
+  /* PREVIEW BOX */
+  .preview-box{
+    display:none;
+    margin-top:14px;
+    padding:12px;
+    border-radius:12px;
+    background:#f8faf7;
+    border:1px solid rgba(103,118,97,.3);
+    align-items:center;
+    gap:14px;
+    animation:fadeInUp .3s ease-out;
+  }
+  .preview-img{
+    width:64px;
+    height:64px;
+    border-radius:8px;
+    object-fit:cover;
+    border:1px solid var(--border-color);
+  }
+  .preview-info{
+    flex:1;
+    overflow:hidden;
+  }
+  .preview-name{
+    font-size:13px;
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .preview-size{
+    font-size:11px;
+    color:#8a8a80;
+    margin-top:2px;
+  }
+  .btn-remove-photo{
+    background:transparent;
+    border:none;
+    color:var(--sage);
+    cursor:pointer;
+    padding:6px 10px;
+    border-radius:6px;
+    font-size:12px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    transition:background .2s;
+  }
+  .btn-remove-photo:hover{
+    background:rgba(103,118,97,.1);
+  }
+
+  /* ALERTS */
+  .alert-msg{
+    padding:12px 16px;
+    border-radius:10px;
+    font-size:13px;
+    margin-bottom:20px;
+    display:none;
+    line-height:1.4;
+    animation:fadeInUp .25s ease-out;
+  }
+  .alert-msg.error{
+    background:#fdf2f2;
+    color:#9A1A1B;
+    border:1px solid #f8b4b4;
+  }
+  .alert-msg.success{
+    background:#f0fdf4;
+    color:#166534;
+    border:1px solid #bbf7d0;
+  }
+
+  .ai-status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    margin-top:12px;
+    padding:10px 16px;
+    border-radius:12px;
+    font-size:13px;
+    font-weight:500;
+    background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    color:#166534;
+    border:1px solid #bbf7d0;
+    box-shadow:0 4px 12px -4px rgba(34,197,94,.15);
+    animation:fadeInUp .3s ease-out;
+  }
+  .ai-status-pill.loading{
+    background:#eff6ff;
+    color:#1e40af;
+    border-color:#bfdbfe;
+  }
+
+  /* SUBMIT BUTTON */
+  .btn-submit{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(135deg, var(--sage) 0%, #53624e 100%);
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    cursor:pointer;
+    margin-top:12px;
+    font-family:'Poppins',sans-serif;
+    transition:transform .2s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease;
+    box-shadow:0 8px 22px -6px rgba(103,118,97,.42);
+  }
+  .btn-submit:hover{
+    background:linear-gradient(135deg, #44513f 0%, var(--sage) 100%);
+    transform:translateY(-2px);
+    box-shadow:0 14px 28px -6px rgba(103,118,97,.52);
+  }
+  .btn-submit:disabled{
+    opacity:.7;
+    cursor:not-allowed;
+    transform:none;
+    animation:pulseDisabled 1.5s infinite ease-in-out;
+  }
+
+  @keyframes pulseDisabled{
+    0%, 100%{ opacity:.65; }
+    50%{ opacity:.85; }
+  }
+
+  footer{
+    background:var(--ink);
+    color:#d8d4c8;
+    padding:30px 60px;
+    text-align:center;
+    font-size:12px;
+  }
+
+  @media (max-width:720px){
+    nav{ padding:18px 24px; }
+    .main-wrapper{ padding:24px 16px 60px 16px; }
+    .form-container{ padding:30px 22px; border-radius:18px; }
+    .form-row{ flex-direction:column; gap:0; }
+    h1.page-title{ font-size:28px; }
+  }
+</style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo" onclick="window.location.href='/dashboard.html'"><span class="dot"></span>Campus Lost &amp; Found</div>
+    <div class="nav-links" id="navContainer">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/browse.html">Browse Items</a>
+      <a href="/my-reports.html">My Reports</a>
+      <a href="/notifications.html">Notifications</a>
+      <a href="/profile.html">Profile</a>
+      <a href="/report-lost.html">Report Lost</a>
+      <div class="user-badge" id="userBadge">
+        <span id="userName">User</span>
+        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-wrapper">
+    <div class="form-container">
+      <a href="/dashboard.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Back to Dashboard
+      </a>
+
+      <span class="header-tag">Found Something?</span>
+      <h1 class="page-title">Report a Found Item</h1>
+      <p class="page-sub">Thank you for helping our campus community! Provide details about the item you found so the rightful owner can claim it.</p>
+
+      <div class="alert-msg" id="alertMsg"></div>
+
+      <form id="reportFoundForm" onsubmit="handleFormSubmit(event)">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoryId">Category <span class="req">*</span></label>
+            <select id="categoryId" name="category_id" required>
+              <option value="" disabled selected>Loading categories...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="locationId">Found Location <span class="req">*</span></label>
+            <select id="locationId" name="location_id" required>
+              <option value="" disabled selected>Loading locations...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="dateFound">Date Found <span class="req">*</span></label>
+          <input type="date" id="dateFound" name="date_found" required>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Item Description &amp; Identifying Details <span class="req">*</span></label>
+          <textarea id="description" name="description" placeholder="Describe the item found (color, condition, brand, exact spot where found, or where it is currently safely kept)..." required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Photo (Optional, but recommended)</label>
+          <div class="upload-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
+            <div class="upload-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <div class="upload-text"><span>Click to upload</span> or drag and drop</div>
+            <div class="upload-hint">PNG, JPG, JPEG or WEBP (Max 5MB)</div>
+          </div>
+          <input type="file" id="photoInput" name="photo" accept="image/*">
+
+          <div class="preview-box" id="previewBox">
+            <img class="preview-img" id="previewImg" src="" alt="Photo preview">
+            <div class="preview-info">
+              <div class="preview-name" id="previewFileName">filename.jpg</div>
+              <div class="preview-size" id="previewFileSize">0 KB</div>
+            </div>
+            <button type="button" class="btn-remove-photo" onclick="clearPhotoSelection()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              Remove
+            </button>
+          </div>
+
+          <div id="aiStatusBadge" class="ai-status-pill" style="display:none;"></div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">Submit Found Report</button>
+      </form>
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Campus Lost &amp; Found · Built for our campus community
+  </footer>
+
+<script>
+let selectedFile = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupUserBadge();
+  setDefaultDate();
+  loadDropdownData();
+  setupDragAndDrop();
+});
+
+function setupUserBadge() {
+  const userJson = localStorage.getItem('user');
+  if (userJson) {
+    try {
+      const user = JSON.parse(userJson);
+      const name = user.first_name || 'Student';
+      document.getElementById('userName').textContent = `Hi, ${name}`;
+    } catch(e) {}
+  }
+}
+
+function setDefaultDate() {
+  const dateInput = document.getElementById('dateFound');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.value = today;
+  dateInput.max = today;
+}
+
+function handleLogout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/auth.html?mode=login';
+}
+
+function showAlert(message, type = 'error') {
+  const alertEl = document.getElementById('alertMsg');
+  alertEl.textContent = message;
+  alertEl.className = `alert-msg ${type}`;
+  alertEl.style.display = 'block';
+  alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function hideAlert() {
+  const alertEl = document.getElementById('alertMsg');
+  alertEl.style.display = 'none';
+  alertEl.textContent = '';
+}
+
+async function loadDropdownData() {
+  const categorySelect = document.getElementById('categoryId');
+  const locationSelect = document.getElementById('locationId');
+
+  try {
+    const [categoriesRes, locationsRes] = await Promise.all([
+      fetch('/api/categories'),
+      fetch('/api/locations')
+    ]);
+
+    if (!categoriesRes.ok || !locationsRes.ok) {
+      throw new Error('Failed to load category or location options.');
+    }
+
+    const categories = await categoriesRes.json();
+    const locations = await locationsRes.json();
+
+    categorySelect.innerHTML = '<option value="" disabled selected>Select a category</option>' +
+      categories.map(c => `<option value="${c.category_id}">${escapeHtml(c.category_name)}</option>`).join('');
+
+    locationSelect.innerHTML = '<option value="" disabled selected>Select a location</option>' +
+      locations.map(l => `<option value="${l.location_id}">${escapeHtml(l.location_name)}</option>`).join('');
+
+  } catch (err) {
+    console.error(err);
+    showAlert('Error loading form options: ' + err.message);
+  }
+}
+
+function setupDragAndDrop() {
+  const dropArea = document.getElementById('dropArea');
+  const photoInput = document.getElementById('photoInput');
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropArea.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropArea.classList.add('dragover');
+    }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropArea.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropArea.classList.remove('dragover');
+    }, false);
+  });
+
+  dropArea.addEventListener('drop', (e) => {
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      handleFileSelected(files[0]);
+    }
+  });
+
+  photoInput.addEventListener('change', (e) => {
+    if (photoInput.files && photoInput.files.length > 0) {
+      handleFileSelected(photoInput.files[0]);
+    }
+  });
+}
+
+function handleFileSelected(file) {
+  if (!file.type.startsWith('image/')) {
+    showAlert('Please select a valid image file (PNG, JPG, WEBP).');
+    return;
+  }
+
+  // 5MB limit
+  if (file.size > 5 * 1024 * 1024) {
+    showAlert('Image size exceeds 5MB. Please choose a smaller image.');
+    return;
+  }
+
+  hideAlert();
+  selectedFile = file;
+
+  const previewBox = document.getElementById('previewBox');
+  const previewImg = document.getElementById('previewImg');
+  const previewFileName = document.getElementById('previewFileName');
+  const previewFileSize = document.getElementById('previewFileSize');
+
+  previewFileName.textContent = file.name;
+  previewFileSize.textContent = formatBytes(file.size);
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    previewBox.style.display = 'flex';
+    document.getElementById('dropArea').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+
+  // Trigger AI auto-detection
+  runAiAutoDetect(file);
+}
+
+async function runAiAutoDetect(file) {
+  const badge = document.getElementById('aiStatusBadge');
+  if (!badge) return;
+
+  badge.className = 'ai-status-pill loading';
+  badge.style.display = 'inline-flex';
+  badge.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> AI is analyzing photo (YOLOv8)...`;
+
+  try {
+    const formData = new FormData();
+    formData.append('photo', file);
+
+    const res = await fetch('/api/found-items/detect', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!res.ok) throw new Error('AI service unreachable');
+
+    const data = await res.json();
+    if (data.detection && data.detection.detected && data.detection.top_class) {
+      const conf = Math.round((data.detection.confidence || 0) * 100);
+      const topClass = data.detection.top_class;
+
+      badge.className = 'ai-status-pill';
+      if (data.suggested_category_id) {
+        document.getElementById('categoryId').value = data.suggested_category_id;
+        badge.innerHTML = `✨ <strong>AI Auto-Tag:</strong> Detected <em>${escapeHtml(topClass)}</em> (${conf}% confidence) → Selected <strong>"${escapeHtml(data.suggested_category_name)}"</strong>`;
+      } else {
+        badge.innerHTML = `✨ <strong>AI Auto-Tag:</strong> Detected <em>${escapeHtml(topClass)}</em> (${conf}% confidence)`;
+      }
+    } else {
+      badge.className = 'ai-status-pill';
+      badge.innerHTML = `✨ <strong>AI Scan:</strong> No common object detected with high confidence. Please choose category manually.`;
+    }
+  } catch (err) {
+    badge.style.display = 'none';
+  }
+}
+
+function clearPhotoSelection() {
+  selectedFile = null;
+  document.getElementById('photoInput').value = '';
+  document.getElementById('previewBox').style.display = 'none';
+  document.getElementById('dropArea').style.display = 'block';
+  const badge = document.getElementById('aiStatusBadge');
+  if (badge) badge.style.display = 'none';
+}
+
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+async function handleFormSubmit(e) {
+  e.preventDefault();
+  hideAlert();
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.replace('/auth.html?mode=login');
+    return;
+  }
+
+  const category_id = document.getElementById('categoryId').value;
+  const location_id = document.getElementById('locationId').value;
+  const date_found = document.getElementById('dateFound').value;
+  const description = document.getElementById('description').value.trim();
+  const submitBtn = document.getElementById('submitBtn');
+
+  if (!category_id || !location_id || !date_found || !description) {
+    showAlert('Please fill in all required fields.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('category_id', category_id);
+  formData.append('location_id', location_id);
+  formData.append('date_found', date_found);
+  formData.append('description', description);
+
+  if (selectedFile) {
+    formData.append('photo', selectedFile);
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting & Matching with AI...';
+
+  try {
+    const res = await fetch('/api/found-items', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to submit report. Please try again.');
+    }
+
+    let successMsg = 'Found item report submitted successfully!';
+    if (data.ai && data.ai.matches && data.ai.matches.length > 0) {
+      const topMatch = data.ai.matches[0];
+      successMsg += ` 🎉 AI found ${data.ai.matches.length} matching lost report(s) (Top similarity: ${topMatch.similarity}%)! Redirecting...`;
+    } else {
+      successMsg += ' Redirecting to home...';
+    }
+
+    showAlert(successMsg, 'success');
+
+    setTimeout(() => {
+      window.location.href = '/index.html';
+    }, 2500);
+
+  } catch (err) {
+    showAlert(err.message || 'Network error occurred while submitting.');
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Found Report';
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+</script>
+<script src="/demo-bar.js"></script>
+</body>
+</html>
