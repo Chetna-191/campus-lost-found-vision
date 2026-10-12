@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Match Review — Campus Lost &amp; Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,500;0,600;1,500&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+  // Immediate authentication check
+  const token = localStorage.getItem('token');
+  if (!token) {
+    window.location.replace('/auth.html?mode=login');
+  }
+</script>
+<style>
+  :root{
+    --sand:#D1CDB2;
+    --sage:#677661;
+    --brick:#9A1A1B;
+    --coral:#E06C6B;
+    --peach:#EFA79A;
+    --blush:#FBD4CF;
+    --ink:#2b2b26;
+    --cream:#FBF8F2;
+    --card-bg:#ffffff;
+    --border-color:#e2dfd5;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  a{ text-decoration:none; }
+
+  /* NAVBAR */
+  nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 60px;
+    background:var(--cream);
+    border-bottom:1px solid rgba(209,205,178,.4);
+  }
+  .logo{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--brick);
+    display:flex; align-items:center; gap:8px;
+    cursor:pointer;
+  }
+  .logo .dot{ width:9px;height:9px;border-radius:50%; background:var(--coral); }
+  .nav-links{ display:flex; gap:24px; align-items:center; }
+  .nav-links a{ color:var(--ink); font-size:14px; font-weight:500; opacity:.75; transition:opacity .2s; }
+  .nav-links a:hover{ opacity:1; }
+
+  .user-badge{
+    font-size:14px; font-weight:600; color:var(--brick);
+    display:flex; align-items:center; gap:12px;
+  }
+  .btn-logout{
+    background:transparent; border:1px solid var(--brick); color:var(--brick);
+    padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:'Poppins',sans-serif; transition:all .2s;
+  }
+  .btn-logout:hover{ background:var(--brick); color:#fff; }
+
+  /* MAIN WRAPPER */
+  .main-wrapper{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    padding:40px 20px 80px 20px;
+  }
+
+  .container{
+    width:100%;
+    max-width:960px;
+  }
+
+  .back-link{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    font-size:13px;
+    font-weight:500;
+    color:var(--sage);
+    margin-bottom:20px;
+    transition:transform .2s ease;
+  }
+  .back-link:hover{
+    color:var(--ink);
+    transform:translateX(-3px);
+  }
+
+  /* HEADER */
+  .match-header-card{
+    background:var(--card-bg);
+    border-radius:24px;
+    padding:28px 36px;
+    border:1px solid var(--border-color);
+    box-shadow:0 12px 30px -10px rgba(43,43,38,.06);
+    margin-bottom:28px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:20px;
+  }
+  .header-left h1{
+    font-family:'Fraunces',serif;
+    font-size:28px;
+    margin:0 0 4px 0;
+    color:var(--ink);
+  }
+  .header-left p{
+    margin:0;
+    font-size:13.5px;
+    color:#737368;
+  }
+
+  .similarity-meter{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background:linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border:1.5px solid #86efac;
+    padding:12px 22px;
+    border-radius:20px;
+  }
+  .similarity-score{
+    font-family:'Fraunces',serif;
+    font-size:32px;
+    font-weight:700;
+    color:#15803d;
+    line-height:1;
+  }
+  .similarity-label{
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:#166534;
+  }
+
+  .match-status-badge{
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+  .match-status-badge.pending{
+    background:#fef3c7;
+    color:#92400e;
+    border:1px solid #fde68a;
+  }
+  .match-status-badge.confirmed{
+    background:#dcfce7;
+    color:#166534;
+    border:1px solid #86efac;
+  }
+  .match-status-badge.rejected{
+    background:#fee2e2;
+    color:#991b1b;
+    border:1px solid #fca5a5;
+  }
+
+  /* COMPARISON GRID */
+  .comparison-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+    margin-bottom:28px;
+  }
+
+  .item-col{
+    background:var(--card-bg);
+    border-radius:24px;
+    border:1px solid var(--border-color);
+    overflow:hidden;
+    box-shadow:0 12px 28px -8px rgba(43,43,38,.06);
+    display:flex;
+    flex-direction:column;
+  }
+  .item-col-header{
+    padding:16px 24px;
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .item-col.lost .item-col-header{
+    background:rgba(154,26,27,.08);
+    color:var(--brick);
+    border-bottom:1px solid rgba(154,26,27,.12);
+  }
+  .item-col.found .item-col-header{
+    background:rgba(103,118,97,.12);
+    color:var(--sage);
+    border-bottom:1px solid rgba(103,118,97,.15);
+  }
+
+  .item-img-wrap{
+    width:100%;
+    height:260px;
+    background:#f3f1eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    position:relative;
+  }
+  .item-img-wrap img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:transform .3s ease;
+  }
+  .item-img-wrap img:hover{
+    transform:scale(1.03);
+  }
+  .no-img-placeholder{
+    color:#9e9e94;
+    font-size:13px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:8px;
+  }
+
+  .item-details{
+    padding:24px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .detail-row{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .detail-label{
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:#8c8c82;
+  }
+  .detail-value{
+    font-size:14px;
+    color:var(--ink);
+    font-weight:500;
+  }
+  .detail-desc{
+    background:#faf8f3;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid rgba(209,205,178,.4);
+    font-size:13px;
+    line-height:1.5;
+    color:#4a4a40;
+  }
+
+  .contact-box{
+    margin-top:auto;
+    padding:14px;
+    border-radius:14px;
+    background:#f8faf6;
+    border:1px dashed rgba(103,118,97,.4);
+    font-size:12.5px;
+    color:#4a5746;
+  }
+  .contact-box strong{
+    color:var(--ink);
+    display:block;
+    margin-bottom:4px;
+  }
+
+  /* ACTION BAR */
+  .action-bar{
+    background:var(--card-bg);
+    border-radius:24px;
+    padding:24px 36px;
+    border:1px solid var(--border-color);
+    box-shadow:0 12px 30px -10px rgba(43,43,38,.06);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:16px;
+  }
+  .action-text h3{
+    margin:0 0 2px 0;
+    font-family:'Fraunces',serif;
+    font-size:20px;
+    color:var(--ink);
+  }
+  .action-text p{
+    margin:0;
+    font-size:13px;
+    color:#737368;
+  }
+
+  .action-buttons{
+    display:flex;
+    gap:12px;
+  }
+  .btn-confirm{
+    background:linear-gradient(135deg, var(--sage) 0%, #4f5d4a 100%);
+    color:#fff;
+    border:none;
+    padding:14px 28px;
+    border-radius:30px;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    box-shadow:0 8px 18px -4px rgba(103,118,97,.4);
+    transition:all .2s ease;
+  }
+  .btn-confirm:hover{
+    transform:translateY(-2px);
+    box-shadow:0 12px 24px -4px rgba(103,118,97,.55);
+  }
+
+  .btn-reject{
+    background:#fff;
+    color:var(--brick);
+    border:1.5px solid rgba(154,26,27,.3);
+    padding:14px 24px;
+    border-radius:30px;
+    font-family:'Poppins',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:all .2s ease;
+  }
+  .btn-reject:hover{
+    background:#fdf2f2;
+    border-color:var(--brick);
+  }
+
+  /* ALERTS */
+  .alert-msg{
+    padding:14px 18px;
+    border-radius:12px;
+    font-size:13.5px;
+    margin-bottom:20px;
+    display:none;
+    line-height:1.4;
+  }
+  .alert-msg.success{
+    background:#f0fdf4;
+    color:#166534;
+    border:1px solid #bbf7d0;
+  }
+  .alert-msg.error{
+    background:#fdf2f2;
+    color:#9A1A1B;
+    border:1px solid #f8b4b4;
+  }
+
+  footer{
+    background:var(--ink);
+    color:#d8d4c8;
+    padding:30px 60px;
+    text-align:center;
+    font-size:12px;
+    margin-top:auto;
+  }
+
+  @media (max-width:768px){
+    nav{ padding:18px 24px; }
+    .main-wrapper{ padding:20px 16px 60px 16px; }
+    .comparison-grid{ grid-template-columns:1fr; }
+    .match-header-card, .action-bar{ padding:20px; }
+  }
+</style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo" onclick="window.location.href='/dashboard.html'"><span class="dot"></span>Campus Lost &amp; Found</div>
+    <div class="nav-links" id="navContainer">
+      <a href="/dashboard.html">Dashboard</a>
+      <a href="/browse.html">Browse Items</a>
+      <a href="/my-reports.html">My Reports</a>
+      <a href="/notifications.html">Notifications</a>
+      <a href="/profile.html">Profile</a>
+      <a href="/report-lost.html">Report Lost</a>
+      <a href="/report-found.html">Report Found</a>
+      <div class="user-badge" id="userBadge">
+        <span id="userName">User</span>
+        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-wrapper">
+    <div class="container">
+
+      <a href="/notifications.html" class="back-link">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        Back to Notifications
+      </a>
+
+      <div class="alert-msg" id="alertMsg"></div>
+
+      <div id="loadingState" style="text-align:center; padding:80px 20px; color:#737368;">
+        Loading match details...
+      </div>
+
+      <div id="matchContent" style="display:none;">
+
+        <div class="match-header-card">
+          <div class="header-left">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+              <span id="matchStatusBadge" class="match-status-badge pending">Pending Verification</span>
+              <span style="font-size:12px; color:#8c8c82;" id="matchDate"></span>
+            </div>
+            <h1 id="matchTitle">Match Comparison</h1>
+            <p>Compare the lost item report and found item report side-by-side.</p>
+          </div>
+
+          <div class="similarity-meter">
+            <div class="similarity-score" id="similarityScore">--%</div>
+            <div>
+              <div class="similarity-label">AI Similarity</div>
+              <div style="font-size:11px; color:#15803d;">CLIP Embeddings</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-grid">
+          
+          <!-- LOST ITEM COLUMN -->
+          <div class="item-col lost">
+            <div class="item-col-header">
+              <span>Lost Item Report</span>
+              <span id="lostDate"></span>
+            </div>
+            <div class="item-img-wrap" id="lostImgWrap">
+              <img id="lostImg" src="" alt="Lost Item Photo">
+            </div>
+            <div class="item-details">
+              <div class="detail-row">
+                <span class="detail-label">Category</span>
+                <span class="detail-value" id="lostCategory">--</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Last Seen Location</span>
+                <span class="detail-value" id="lostLocation">--</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Description &amp; Identifying Marks</span>
+                <div class="detail-desc" id="lostDesc">--</div>
+              </div>
+              <div class="contact-box" id="lostOwnerBox">
+                <strong>Reported Lost by:</strong>
+                <span id="lostOwnerName">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOUND ITEM COLUMN -->
+          <div class="item-col found">
+            <div class="item-col-header">
+              <span>Found Item Report</span>
+              <span id="foundDate"></span>
+            </div>
+            <div class="item-img-wrap" id="foundImgWrap">
+              <img id="foundImg" src="" alt="Found Item Photo">
+            </div>
+            <div class="item-details">
+              <div class="detail-row">
+                <span class="detail-label">Category</span>
+                <span class="detail-value" id="foundCategory">--</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Found Location</span>
+                <span class="detail-value" id="foundLocation">--</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Description &amp; Safe Keeping Spot</span>
+                <div class="detail-desc" id="foundDesc">--</div>
+              </div>
+              <div class="contact-box" id="foundReporterBox">
+                <strong>Found &amp; Reported by:</strong>
+                <span id="foundReporterName">--</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ACTION BAR -->
+        <div class="action-bar" id="actionBar">
+          <div class="action-text">
+            <h3>Is this a match?</h3>
+            <p>Confirm if this found item matches the lost item to coordinate recovery.</p>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-reject" id="btnReject" onclick="updateMatchStatus('Rejected')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              Not a Match (Reject)
+            </button>
+            <button class="btn-confirm" id="btnConfirm" onclick="updateMatchStatus('Confirmed')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Confirm Match
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    © 2026 Campus Lost &amp; Found · Built for our campus community
+  </footer>
+
+<script>
+let currentMatchId = null;
+let matchData = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  setupUserBadge();
+  const urlParams = new URLSearchParams(window.location.search);
+  currentMatchId = urlParams.get('id');
+
+  if (!currentMatchId) {
+    showAlert('No match ID specified in URL.', 'error');
+    document.getElementById('loadingState').textContent = 'Match not found.';
+    return;
+  }
+
+  fetchMatchDetails(currentMatchId);
+});
+
+function setupUserBadge() {
+  const userJson = localStorage.getItem('user');
+  if (userJson) {
+    try {
+      const user = JSON.parse(userJson);
+      const name = user.first_name || 'Student';
+      document.getElementById('userName').textContent = `Hi, ${name}`;
+    } catch(e) {}
+  }
+}
+
+function handleLogout() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  window.location.href = '/auth.html?mode=login';
+}
+
+function showAlert(message, type = 'success') {
+  const alertEl = document.getElementById('alertMsg');
+  alertEl.textContent = message;
+  alertEl.className = `alert-msg ${type}`;
+  alertEl.style.display = 'block';
+  alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function fetchMatchDetails(id) {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const res = await fetch(`/api/matches/${id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Failed to fetch match details');
+    }
+
+    matchData = await res.json();
+    renderMatch(matchData);
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('matchContent').style.display = 'block';
+
+  } catch (err) {
+    document.getElementById('loadingState').innerHTML = `
+      <div style="color:var(--brick); font-weight:600; margin-bottom:8px;">Error loading match</div>
+      <div>${escapeHtml(err.message)}</div>
+    `;
+  }
+}
+
+function renderMatch(data) {
+  document.getElementById('matchTitle').textContent = `Match Review #${data.match_id}`;
+  document.getElementById('similarityScore').textContent = `${Math.round(data.similarity_score || 0)}%`;
+  
+  if (data.created_at) {
+    document.getElementById('matchDate').textContent = `Created ${new Date(data.created_at).toLocaleDateString()}`;
+  }
+
+  // Status Badge
+  const statusBadge = document.getElementById('matchStatusBadge');
+  const status = data.match_status || 'Pending';
+  statusBadge.textContent = status;
+  statusBadge.className = `match-status-badge ${status.toLowerCase()}`;
+
+  // Lost Item Column
+  const lost = data.lost_item || {};
+  document.getElementById('lostDate').textContent = lost.date_lost || '';
+  document.getElementById('lostCategory').textContent = lost.category?.category_name || 'General';
+  document.getElementById('lostLocation').textContent = lost.location?.location_name || 'Campus';
+  document.getElementById('lostDesc').textContent = lost.description || 'No description provided';
+  
+  if (lost.image_url) {
+    document.getElementById('lostImg').src = lost.image_url;
+  } else {
+    document.getElementById('lostImgWrap').innerHTML = `<div class="no-img-placeholder"><span>No photo uploaded</span></div>`;
+  }
+
+  if (lost.users) {
+    document.getElementById('lostOwnerName').innerHTML = `
+      ${escapeHtml(lost.users.first_name)} ${escapeHtml(lost.users.last_name || '')} (${escapeHtml(lost.users.reg_no || '')})<br>
+      <span style="font-size:11.5px; opacity:.85;">${escapeHtml(lost.users.phone || lost.users.email || '')}</span>
+    `;
+  }
+
+  // Found Item Column
+  const found = data.found_item || {};
+  document.getElementById('foundDate').textContent = found.date_found || '';
+  document.getElementById('foundCategory').textContent = found.category?.category_name || 'General';
+  document.getElementById('foundLocation').textContent = found.location?.location_name || 'Campus';
+  document.getElementById('foundDesc').textContent = found.description || 'No description provided';
+
+  if (found.image_url) {
+    document.getElementById('foundImg').src = found.image_url;
+  } else {
+    document.getElementById('foundImgWrap').innerHTML = `<div class="no-img-placeholder"><span>No photo uploaded</span></div>`;
+  }
+
+  if (found.users) {
+    document.getElementById('foundReporterName').innerHTML = `
+      ${escapeHtml(found.users.first_name)} ${escapeHtml(found.users.last_name || '')} (${escapeHtml(found.users.reg_no || '')})<br>
+      <span style="font-size:11.5px; opacity:.85;">${escapeHtml(found.users.phone || found.users.email || '')}</span>
+    `;
+  }
+
+  // Disable or show state if already confirmed or rejected
+  if (status === 'Confirmed' || status === 'Rejected') {
+    document.getElementById('btnConfirm').disabled = true;
+    document.getElementById('btnReject').disabled = true;
+    document.getElementById('btnConfirm').style.opacity = '0.5';
+    document.getElementById('btnReject').style.opacity = '0.5';
+  }
+}
+
+async function updateMatchStatus(status) {
+  const token = localStorage.getItem('token');
+  if (!token || !currentMatchId) return;
+
+  const btnConfirm = document.getElementById('btnConfirm');
+  const btnReject = document.getElementById('btnReject');
+
+  btnConfirm.disabled = true;
+  btnReject.disabled = true;
+
+  try {
+    const res = await fetch(`/api/matches/${currentMatchId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ status })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update match status');
+
+    showAlert(`Match status successfully updated to "${status}"!`, 'success');
+
+    // Update status badge
+    const statusBadge = document.getElementById('matchStatusBadge');
+    statusBadge.textContent = status;
+    statusBadge.className = `match-status-badge ${status.toLowerCase()}`;
+
+  } catch (err) {
+    showAlert(err.message, 'error');
+    btnConfirm.disabled = false;
+    btnReject.disabled = false;
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+</script>
+<script src="/demo-bar.js"></script>
+</body>
+</html>
