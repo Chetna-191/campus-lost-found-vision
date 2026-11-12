@@ -3,8 +3,8 @@ const multer = require('multer');
 const supabase = require('../db');
 const verifyToken = require('../middleware/auth');
 const uploadImage = require('../uploadHelper');
-const { detectImage, findMatches, mapClassToCategoryId } = require('../aiService');
-const { recordMatchAndNotify } = require('../matchHelper');
+const { detectImage, findMatches, findMatchesText, buildItemTextDescription, fetchImageBuffer, mapClassToCategoryId } = require('../aiService');
+const { recordMatchAndNotify, MATCH_THRESHOLD, TEXT_IMAGE_MATCH_THRESHOLD } = require('../matchHelper');
 
 const router = express.Router();
 
@@ -42,17 +42,54 @@ router.post('/detect', upload.single('photo'), async (req, res) => {
 });
 
 // ============ CREATE LOST ITEM ============
-// POST / - Protected by JWT middleware, accepts single file field 'photo'
+// POST / - Protected by JWT middleware, accepts optional file field 'photo' + required detail fields
 router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
     try {
-        let { category_id, location_id, description, date_lost } = req.body;
+        let {
+            category_id,
+            location_id,
+            description,
+            date_lost,
+            color,
+            brand,
+            distinguishing_marks,
+            contents_details
+        } = req.body;
         const user_id = req.user.user_id;
+
+        // Validation for required fields
+        if (!category_id) {
+            return res.status(400).json({ error: 'Category is required.' });
+        }
+        if (!location_id) {
+            return res.status(400).json({ error: 'Last known location is required.' });
+        }
+        if (!date_lost) {
+            return res.status(400).json({ error: 'Date lost is required.' });
+        }
+        if (!color || !color.trim()) {
+            return res.status(400).json({ error: 'Item color is required.' });
+        }
+        if (!brand || !brand.trim()) {
+            return res.status(400).json({ error: 'Item brand is required (specify "Unknown" if unbranded).' });
+        }
+        if (!distinguishing_marks || !distinguishing_marks.trim()) {
+            return res.status(400).json({ error: 'Distinguishing marks are required (specify "None" if none).' });
+        }
+        if (!contents_details || !contents_details.trim()) {
+            return res.status(400).json({ error: 'Contents or extra details are required (specify "None" if none).' });
+        }
+        if (!description || description.trim().length < 20) {
+            return res.status(400).json({ error: 'Description must be at least 20 characters long.' });
+        }
 
         let image_url = null;
         let aiDetection = null;
         let potentialMatches = [];
+        let matchMode = 'text-image';
 
         if (req.file) {
+            matchMode = 'image-image';
             // 1. Run YOLO object detection
             aiDetection = await detectImage(req.file.buffer, req.file.originalname, req.file.mimetype);
 
@@ -65,10 +102,35 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
             // 2. Upload photo to Supabase Storage
             image_url = await uploadImage(req.file, 'lost');
 
-            // 3. Search for potential matches against reported found items
+            // 3. Search for potential matches against reported found items using image-image comparison
             potentialMatches = await findMatches(req.file.buffer, 'found_item', {
                 minSimilarity: 50,
                 limit: 5,
+                categoryId: category_id || null,
+            });
+        } else {
+            // Photo is optional: match using text details against found items' photos
+            matchMode = 'text-image';
+
+            // Fetch category name for richer text embedding if available
+            const { data: categoryData } = await supabase
+                .from('category')
+                .select('category_name')
+                .eq('category_id', category_id)
+                .maybeSingle();
+
+            const textDescription = buildItemTextDescription({
+                category_name: categoryData?.category_name,
+                color: color.trim(),
+                brand: brand.trim(),
+                description: description.trim(),
+                distinguishing_marks: distinguishing_marks.trim(),
+                contents_details: contents_details.trim()
+            });
+
+            potentialMatches = await findMatchesText(textDescription, 'found_item', {
+                minSimilarity: TEXT_IMAGE_MATCH_THRESHOLD,
+                limit: 3, // keep top 3 candidates per item as per requirement
                 categoryId: category_id || null,
             });
         }
@@ -78,10 +140,14 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
             .insert([{
                 category_id: category_id || null,
                 location_id,
-                description,
+                description: description.trim(),
                 date_lost,
                 user_id,
-                image_url
+                image_url,
+                color: color.trim(),
+                brand: brand.trim(),
+                distinguishing_marks: distinguishing_marks.trim(),
+                contents_details: contents_details.trim()
             }])
             .select('*, category(category_name), location(location_name)');
 
@@ -89,11 +155,16 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
 
         const createdItem = data[0];
 
-        // 4. Save matches >= 80% to item_match & notify both users
+        // 4. Save matches and notify both users
         const savedMatches = [];
         if (potentialMatches && potentialMatches.length > 0) {
-            for (const match of potentialMatches) {
-                if (match.similarity >= 80 && match.item) {
+            // For image-image: 80% threshold; for text-image: TEXT_IMAGE_MATCH_THRESHOLD
+            const matchThreshold = (matchMode === 'image-image') ? MATCH_THRESHOLD : TEXT_IMAGE_MATCH_THRESHOLD;
+            // For text-image, keep top 3 candidates per requirement
+            const candidatePool = (matchMode === 'image-image') ? potentialMatches : potentialMatches.slice(0, 3);
+
+            for (const match of candidatePool) {
+                if (match.similarity >= matchThreshold && match.item) {
                     const matchRecord = await recordMatchAndNotify({
                         lostItemId: createdItem.lost_item_id,
                         foundItemId: match.item.found_item_id,
@@ -101,7 +172,8 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
                         foundUserId: match.item.user_id,
                         similarity: match.similarity,
                         lostDesc: createdItem.description,
-                        foundDesc: match.item.description
+                        foundDesc: match.item.description,
+                        threshold: matchThreshold
                     });
                     if (matchRecord) {
                         savedMatches.push(matchRecord);
@@ -113,6 +185,7 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
         res.status(201).json({
             ...createdItem,
             ai: {
+                match_mode: matchMode,
                 detected: aiDetection ? aiDetection.detected : false,
                 top_class: aiDetection ? aiDetection.top_class : null,
                 confidence: aiDetection ? aiDetection.confidence : 0,
@@ -128,36 +201,43 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
 });
 
 // ============ GET AI MATCHES FOR A SPECIFIC LOST ITEM ============
-// GET /:id/matches - Compares item's image with reported found items
+// GET /:id/matches - Compares item's image (or text description) with reported found items
 router.get('/:id/matches', async (req, res) => {
     try {
         const { id } = req.params;
 
         const { data: lostItem, error } = await supabase
             .from('lost_item')
-            .select('*')
-            .eq('lost_id', id)
+            .select('*, category(category_name), location(location_name)')
+            .eq('lost_item_id', id)
             .single();
 
         if (error || !lostItem) {
             return res.status(404).json({ error: 'Lost item not found' });
         }
 
-        if (!lostItem.image_url) {
-            return res.json({ matches: [], message: 'Item does not have an image to compare' });
-        }
+        let matches = [];
 
-        const { fetchImageBuffer } = require('../aiService');
-        const buffer = await fetchImageBuffer(lostItem.image_url);
-        if (!buffer) {
-            return res.status(500).json({ error: 'Could not fetch image for comparison' });
-        }
+        if (lostItem.image_url) {
+            const buffer = await fetchImageBuffer(lostItem.image_url);
+            if (!buffer) {
+                return res.status(500).json({ error: 'Could not fetch image for comparison' });
+            }
 
-        const matches = await findMatches(buffer, 'found_item', {
-            minSimilarity: 50,
-            limit: 10,
-            categoryId: lostItem.category_id,
-        });
+            matches = await findMatches(buffer, 'found_item', {
+                minSimilarity: 50,
+                limit: 10,
+                categoryId: lostItem.category_id,
+            });
+        } else {
+            // Text-image matching
+            const textDesc = buildItemTextDescription(lostItem);
+            matches = await findMatchesText(textDesc, 'found_item', {
+                minSimilarity: TEXT_IMAGE_MATCH_THRESHOLD,
+                limit: 3, // keep top 3 candidates as per requirement
+                categoryId: lostItem.category_id,
+            });
+        }
 
         res.json({ lost_item: lostItem, matches });
     } catch (err) {
