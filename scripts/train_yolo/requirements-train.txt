@@ -1,0 +1,5 @@
+# Training dependencies (install PyTorch CUDA FIRST before installing this file)
+ultralytics
+roboflow
+pyyaml
+
