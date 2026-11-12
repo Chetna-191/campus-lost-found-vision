@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login / Signup — Campus Lost &amp; Found</title>
+<title>Campus Lost &amp; Found — Authentication</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
@@ -30,8 +31,8 @@
   }
   .card{
     width:100%;
-    max-width:920px;
-    min-height:620px;
+    max-width:960px;
+    min-height:640px;
     background:var(--card-white);
     border-radius:22px;
     display:flex;
@@ -41,7 +42,7 @@
   /* LEFT ILLUSTRATED PANEL */
   .illustration{
     position:relative;
-    flex:1 1 45%;
+    flex:1 1 42%;
     background:
       radial-gradient(circle at 30% 78%, rgba(232,200,116,.28), transparent 45%),
       linear-gradient(200deg, var(--teal-deep) 0%, var(--navy-mid) 45%, var(--navy-deep) 100%);
@@ -52,7 +53,6 @@
     padding:44px 40px;
   }
   .illustration::before{
-    /* dotted star texture */
     content:"";
     position:absolute;
     inset:0;
@@ -152,24 +152,27 @@
 
   /* RIGHT FORM PANEL */
   .form-side{
-    flex:1 1 55%;
-    padding:48px 56px;
+    flex:1 1 58%;
+    padding:44px 52px;
     display:flex;
     flex-direction:column;
     justify-content:center;
     position:relative;
+    overflow-y:auto;
+    max-height:92vh;
   }
-  .form-inner{ max-width:360px; margin:0 auto; width:100%; }
+  .form-inner{ max-width:400px; margin:0 auto; width:100%; }
   h1.form-title{
     font-family:'Cormorant Garamond', serif;
     font-weight:600;
-    font-size:44px;
+    font-size:40px;
     color:var(--ink);
-    margin:0 0 28px 0;
+    margin:0 0 20px 0;
+    line-height:1.15;
   }
   .field{
     position:relative;
-    margin-bottom:22px;
+    margin-bottom:18px;
   }
   .field label{
     display:block;
@@ -177,14 +180,15 @@
     letter-spacing:.06em;
     text-transform:uppercase;
     color:var(--muted);
-    margin-bottom:6px;
+    margin-bottom:5px;
+    font-weight:500;
   }
   .field input{
     width:100%;
     border:none;
     border-bottom:1.5px solid var(--line);
-    padding:8px 2px 10px 2px;
-    font-size:15px;
+    padding:7px 2px 9px 2px;
+    font-size:14px;
     font-family:'Poppins',sans-serif;
     color:var(--ink);
     outline:none;
@@ -196,7 +200,7 @@
   .field .hint{
     font-size:11px;
     color:var(--muted);
-    margin-top:5px;
+    margin-top:4px;
   }
   .field .hint.error{ color:#b23b3b; }
   .row-between{
@@ -207,16 +211,17 @@
   }
   .row-flex .field{ flex:1; }
   .forgot{
-    font-size:12px; color:var(--navy-deep); text-decoration:none; font-weight:500;
+    font-size:12px; color:var(--navy-deep); text-decoration:none; font-weight:500; cursor:pointer;
   }
+  .forgot:hover{ text-decoration:underline; }
   .submit-btn{
     width:100%;
-    padding:15px;
+    padding:13px;
     border:none;
     border-radius:30px;
     background:var(--navy-deep);
     color:#fff;
-    font-size:15px;
+    font-size:14px;
     font-weight:500;
     letter-spacing:.03em;
     cursor:pointer;
@@ -230,16 +235,18 @@
     text-align:center;
     font-size:13px;
     color:var(--muted);
-    margin-top:22px;
+    margin-top:20px;
   }
   .switch-line a{ color:var(--navy-deep); font-weight:600; text-decoration:none; cursor:pointer;}
+  .switch-line a:hover{ text-decoration:underline; }
 
   .alert-msg {
     padding: 10px 14px;
     border-radius: 8px;
     font-size: 13px;
-    margin-bottom: 18px;
+    margin-bottom: 16px;
     display: none;
+    line-height: 1.4;
   }
   .alert-msg.error {
     background: #fdf2f2;
@@ -251,14 +258,34 @@
     color: #166534;
     border: 1px solid #bbf7d0;
   }
+  .alert-msg.info {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+  }
 
   .panel{ display:none; }
   .panel.active{ display:block; animation:fade .35s ease; }
   @keyframes fade{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:translateY(0)} }
 
+  .otp-input {
+    letter-spacing: 12px;
+    font-size: 26px !important;
+    text-align: center;
+    font-weight: 600;
+    color: var(--navy-deep) !important;
+  }
+
+  .text-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin: -10px 0 20px 0;
+    line-height: 1.45;
+  }
+
   @media (max-width:760px){
     .card{ flex-direction:column; }
-    .illustration{ min-height:200px; padding:28px 24px; }
+    .illustration{ min-height:180px; padding:28px 24px; }
     .form-side{ padding:36px 24px; }
   }
 </style>
@@ -287,12 +314,12 @@
         <span style="left:66%; top:66%; animation-delay:3s;"></span>
         <span style="left:28%; top:80%; animation-delay:1.3s;"></span>
       </div>
-      <p class="welcome-label">Welcome</p>
+      <p class="welcome-label">Campus L&amp;F</p>
       <div class="credit">
         <div class="dot"></div>
         <div>
           <div style="font-weight:600;color:#fff;">Campus Lost &amp; Found</div>
-          <div>Find what matters, faster</div>
+          <div>Verified SRMIST Student Portal</div>
         </div>
       </div>
     </div>
@@ -300,9 +327,9 @@
     <div class="form-side">
       <div class="form-inner">
 
-        <!-- LOGIN PANEL -->
+        <!-- 1. LOGIN PANEL -->
         <div class="panel active" id="loginPanel">
-          <h1 class="form-title">Login</h1>
+          <h1 class="form-title">Student Login</h1>
           <div class="alert-msg" id="loginAlert"></div>
 
           <form id="loginForm" onsubmit="handleLogin(event)">
@@ -315,55 +342,125 @@
             <div class="field">
               <div class="row-between">
                 <label for="loginPassword" style="margin-bottom:6px;">Password</label>
-                <a class="forgot" href="#" onclick="alert('Please contact your administrator to reset your password.')">Forgot password?</a>
+                <a class="forgot" onclick="showPanel('forgot')">Forgot password?</a>
               </div>
               <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password">
             </div>
 
-            <button type="submit" class="submit-btn" id="loginSubmitBtn">Login</button>
+            <button type="submit" class="submit-btn" id="loginSubmitBtn">Sign In</button>
           </form>
 
-          <p class="switch-line">Don't have an account? <a onclick="showPanel('signup')">Sign up</a></p>
+          <p class="switch-line">New student? <a onclick="showPanel('signup')">Create verified account</a></p>
         </div>
 
-        <!-- SIGNUP PANEL -->
+        <!-- 2. SIGNUP PANEL -->
         <div class="panel" id="signupPanel">
-          <h1 class="form-title">Sign Up</h1>
+          <h1 class="form-title">Register</h1>
+          <p class="text-sub">Account creation is restricted to enrolled students on the official campus roster.</p>
           <div class="alert-msg" id="signupAlert"></div>
 
           <form id="signupForm" onsubmit="handleSignup(event)">
             <div class="field">
               <label for="signupName">Full Name</label>
-              <input type="text" id="signupName" placeholder="Ananya Sharma" required autocomplete="name">
+              <input type="text" id="signupName" placeholder="Aman Gupta" required autocomplete="name">
             </div>
 
             <div class="field">
               <label for="signupReg">Registration Number</label>
               <input type="text" id="signupReg" placeholder="RA24110030105720" maxlength="16" required>
-              <div class="hint" id="signupRegHint">Format: RA + 14 digits</div>
+              <div class="hint" id="signupRegHint">Must match your campus roster ID</div>
+            </div>
+
+            <div class="field">
+              <label for="signupEmail">Official College Email</label>
+              <input type="email" id="signupEmail" placeholder="aman.gupta@campus.edu" required autocomplete="email">
+              <div class="hint">A 6-digit OTP will be dispatched to this email</div>
             </div>
 
             <div class="field">
               <label for="signupPassword">Password</label>
               <input type="password" id="signupPassword" placeholder="••••••••" required autocomplete="new-password">
-              <div class="hint" id="signupPasswordHint">Min 8 characters, 1 uppercase, 1 number, 1 special character</div>
+              <div class="hint" id="signupPasswordHint">Min 8 chars: 1 upper, 1 lower, 1 number, 1 symbol (!@#$%^&*)</div>
             </div>
 
             <div class="row-flex">
               <div class="field">
                 <label for="signupDept">Department</label>
-                <input type="text" id="signupDept" placeholder="CSE / ECE">
+                <input type="text" id="signupDept" placeholder="CSE">
               </div>
               <div class="field">
-                <label for="signupPhone">Phone</label>
+                <label for="signupPhone">Phone (Optional)</label>
                 <input type="tel" id="signupPhone" placeholder="9876543210">
               </div>
             </div>
 
-            <button type="submit" class="submit-btn" id="signupSubmitBtn">Create Account</button>
+            <button type="submit" class="submit-btn" id="signupSubmitBtn">Verify &amp; Register</button>
           </form>
 
-          <p class="switch-line">Already have an account? <a onclick="showPanel('login')">Login</a></p>
+          <p class="switch-line">Already registered? <a onclick="showPanel('login')">Back to Login</a></p>
+        </div>
+
+        <!-- 3. EMAIL OTP VERIFICATION PANEL -->
+        <div class="panel" id="verifyPanel">
+          <h1 class="form-title">Email Verification</h1>
+          <p class="text-sub">Please enter the 6-digit code sent to your official campus email <strong id="verifyEmailDisplay"></strong>.</p>
+          <div class="alert-msg" id="verifyAlert"></div>
+
+          <form id="verifyForm" onsubmit="handleVerifyEmail(event)">
+            <input type="hidden" id="verifyEmailHidden">
+            <div class="field">
+              <label for="verifyOtp">6-Digit Code</label>
+              <input type="text" id="verifyOtp" class="otp-input" placeholder="••••••" maxlength="6" pattern="\d{6}" required autocomplete="one-time-code">
+              <div class="hint">Code expires in 10 minutes (max 5 attempts)</div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="verifySubmitBtn">Confirm &amp; Activate Account</button>
+          </form>
+
+          <div style="margin-top:14px; text-align:center;">
+            <a class="forgot" style="font-size:12px;" onclick="resendVerificationOtp()">Didn't get the code? Resend OTP</a>
+          </div>
+
+          <p class="switch-line"><a onclick="showPanel('login')">&larr; Return to Login</a></p>
+        </div>
+
+        <!-- 4. FORGOT PASSWORD PANEL -->
+        <div class="panel" id="forgotPanel">
+          <h1 class="form-title">Reset Password</h1>
+          <p class="text-sub">Enter your registered college email or registration number to receive a reset code.</p>
+          <div class="alert-msg" id="forgotAlert"></div>
+
+          <!-- Step 1: Request OTP -->
+          <form id="forgotReqForm" onsubmit="handleForgotRequest(event)">
+            <div class="field">
+              <label for="forgotEmail">College Email or Registration Number</label>
+              <input type="text" id="forgotEmail" placeholder="student@campus.edu or RA..." required>
+            </div>
+            <button type="submit" class="submit-btn" id="forgotReqBtn">Send Reset Code</button>
+          </form>
+
+          <!-- Step 2: Reset Form (Hidden initially) -->
+          <form id="forgotResetForm" style="display:none; margin-top:20px;" onsubmit="handleResetPassword(event)">
+            <div class="field">
+              <label for="resetOtp">6-Digit Reset Code</label>
+              <input type="text" id="resetOtp" class="otp-input" placeholder="••••••" maxlength="6" required>
+            </div>
+
+            <div class="field">
+              <label for="resetNewPass">New Password</label>
+              <input type="password" id="resetNewPass" placeholder="••••••••" required>
+              <div class="hint">Must meet campus security standards</div>
+            </div>
+
+            <div class="field">
+              <label for="resetConfirmPass">Confirm New Password</label>
+              <input type="password" id="resetConfirmPass" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="submit-btn" id="forgotResetBtn">Update Password</button>
+          </form>
+
+          <p class="switch-line"><a onclick="showPanel('login')">&larr; Back to Login</a></p>
         </div>
 
       </div>
@@ -375,22 +472,27 @@
 (function() {
   const mode = new URLSearchParams(window.location.search).get('mode');
   if (mode === 'signup') {
-    document.getElementById('loginPanel').classList.remove('active');
-    document.getElementById('signupPanel').classList.add('active');
+    showPanel('signup');
+  } else if (mode === 'verify') {
+    showPanel('verify');
+  } else if (mode === 'forgot') {
+    showPanel('forgot');
   }
-  // Default (no mode or mode=login) keeps loginPanel active as set in HTML
 })();
 
 function showPanel(which){
-  document.getElementById('loginPanel').classList.remove('active');
-  document.getElementById('signupPanel').classList.remove('active');
-  document.getElementById(which+'Panel').classList.add('active');
-  hideAlert('loginAlert');
-  hideAlert('signupAlert');
+  ['login', 'signup', 'verify', 'forgot'].forEach(p => {
+    const el = document.getElementById(p + 'Panel');
+    if (el) el.classList.remove('active');
+    hideAlert(p + 'Alert');
+  });
+  const target = document.getElementById(which + 'Panel');
+  if (target) target.classList.add('active');
 }
 
 function showAlert(elementId, message, type = 'error') {
   const el = document.getElementById(elementId);
+  if (!el) return;
   el.textContent = message;
   el.className = `alert-msg ${type}`;
   el.style.display = 'block';
@@ -398,6 +500,7 @@ function showAlert(elementId, message, type = 'error') {
 
 function hideAlert(elementId) {
   const el = document.getElementById(elementId);
+  if (!el) return;
   el.style.display = 'none';
   el.textContent = '';
 }
@@ -406,7 +509,7 @@ function hideAlert(elementId) {
 const loginRegInput = document.getElementById('loginReg');
 const loginRegHint = document.getElementById('loginRegHint');
 loginRegInput.addEventListener('input', () => {
-  const val = loginRegInput.value.toUpperCase();
+  const val = loginRegInput.value.toUpperCase().trim();
   loginRegInput.value = val;
   const valid = /^RA\d{0,14}$/.test(val);
   loginRegHint.textContent = valid ? 'Format: RA + 14 digits' : 'Must start with RA followed by 14 digits';
@@ -417,7 +520,7 @@ loginRegInput.addEventListener('input', () => {
 const signupRegInput = document.getElementById('signupReg');
 const signupRegHint = document.getElementById('signupRegHint');
 signupRegInput.addEventListener('input', () => {
-  const val = signupRegInput.value.toUpperCase();
+  const val = signupRegInput.value.toUpperCase().trim();
   signupRegInput.value = val;
   const valid = /^RA\d{0,14}$/.test(val);
   signupRegHint.textContent = valid ? 'Format: RA + 14 digits' : 'Must start with RA followed by 14 digits';
@@ -434,6 +537,7 @@ signupPasswordInput.addEventListener('input', () => {
   signupPasswordHint.classList.toggle('error', !valid && val.length > 0);
 });
 
+// ============ LOGIN ============
 async function handleLogin(e) {
   e.preventDefault();
   hideAlert('loginAlert');
@@ -448,7 +552,7 @@ async function handleLogin(e) {
   }
 
   btn.disabled = true;
-  btn.textContent = 'Logging in...';
+  btn.textContent = 'Authenticating...';
 
   try {
     const res = await fetch('/api/auth/login', {
@@ -459,6 +563,11 @@ async function handleLogin(e) {
 
     const data = await res.json();
     if (!res.ok) {
+      if (data.requires_verification && data.email) {
+        // Direct to verification
+        openVerificationPanel(data.email, 'Your email requires verification before login.');
+        return;
+      }
       throw new Error(data.error || 'Login failed. Please check your credentials.');
     }
 
@@ -467,23 +576,29 @@ async function handleLogin(e) {
     showAlert('loginAlert', 'Login successful! Redirecting...', 'success');
 
     setTimeout(() => {
-      window.location.href = '/dashboard.html';
-    }, 800);
+      if (data.user && data.user.is_admin) {
+        window.location.href = '/admin.html';
+      } else {
+        window.location.href = '/dashboard.html';
+      }
+    }, 700);
 
   } catch (err) {
     showAlert('loginAlert', err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Login';
+    btn.textContent = 'Sign In';
   }
 }
 
+// ============ SIGNUP ============
 async function handleSignup(e) {
   e.preventDefault();
   hideAlert('signupAlert');
 
   const fullName = document.getElementById('signupName').value.trim();
   const reg_no = document.getElementById('signupReg').value.trim();
+  const email = document.getElementById('signupEmail').value.trim();
   const password = document.getElementById('signupPassword').value;
   const department = document.getElementById('signupDept').value.trim();
   const phone = document.getElementById('signupPhone').value.trim();
@@ -500,12 +615,12 @@ async function handleSignup(e) {
 
   const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
   if (!passRegex.test(password)) {
-    showAlert('signupAlert', 'Password must be at least 8 chars with 1 uppercase, 1 lowercase, 1 number, and 1 special char.');
+    showAlert('signupAlert', 'Password must be at least 8 chars with 1 uppercase, 1 lowercase, 1 number, and 1 special symbol.');
     return;
   }
 
   btn.disabled = true;
-  btn.textContent = 'Creating account...';
+  btn.textContent = 'Verifying roster...';
 
   try {
     const res = await fetch('/api/auth/signup', {
@@ -515,6 +630,7 @@ async function handleSignup(e) {
         first_name,
         last_name,
         reg_no,
+        email,
         password,
         department,
         phone
@@ -526,21 +642,175 @@ async function handleSignup(e) {
       throw new Error(data.error || 'Signup failed. Please try again.');
     }
 
-    showAlert('signupAlert', 'Account created successfully! Please login now.', 'success');
-    
-    // Auto populate login form
-    document.getElementById('loginReg').value = reg_no;
-    
-    setTimeout(() => {
-      showPanel('login');
-      showAlert('loginAlert', 'Account created! Please enter your password to login.', 'success');
-    }, 1200);
+    openVerificationPanel(email, 'Account created! Please enter the 6-digit code sent to your email.');
 
   } catch (err) {
     showAlert('signupAlert', err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Create Account';
+    btn.textContent = 'Verify & Register';
+  }
+}
+
+function openVerificationPanel(email, message) {
+  showPanel('verify');
+  document.getElementById('verifyEmailDisplay').textContent = email;
+  document.getElementById('verifyEmailHidden').value = email;
+  document.getElementById('verifyOtp').value = '';
+  showAlert('verifyAlert', message, 'info');
+}
+
+// ============ VERIFY EMAIL ============
+async function handleVerifyEmail(e) {
+  e.preventDefault();
+  hideAlert('verifyAlert');
+
+  const email = document.getElementById('verifyEmailHidden').value.trim();
+  const otp = document.getElementById('verifyOtp').value.trim();
+  const btn = document.getElementById('verifySubmitBtn');
+
+  if (!otp || otp.length !== 6) {
+    showAlert('verifyAlert', 'Please enter the complete 6-digit code.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Activating...';
+
+  try {
+    const res = await fetch('/api/auth/verify-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Verification failed.');
+    }
+
+    showAlert('verifyAlert', 'Email verified successfully! You can now log in.', 'success');
+    setTimeout(() => {
+      showPanel('login');
+      showAlert('loginAlert', 'Verification complete! Please sign in with your credentials.', 'success');
+    }, 1200);
+
+  } catch (err) {
+    showAlert('verifyAlert', err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Confirm & Activate Account';
+  }
+}
+
+async function resendVerificationOtp() {
+  const email = document.getElementById('verifyEmailHidden').value.trim();
+  if (!email) {
+    showAlert('verifyAlert', 'No email available to resend code.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/resend-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, purpose: 'verification' })
+    });
+    const data = await res.json();
+    showAlert('verifyAlert', data.message || 'New OTP sent to your email.', 'info');
+  } catch (err) {
+    showAlert('verifyAlert', 'Failed to resend code: ' + err.message);
+  }
+}
+
+// ============ FORGOT PASSWORD FLOW ============
+let resetTargetEmail = '';
+
+async function handleForgotRequest(e) {
+  e.preventDefault();
+  hideAlert('forgotAlert');
+
+  const inputVal = document.getElementById('forgotEmail').value.trim();
+  const btn = document.getElementById('forgotReqBtn');
+
+  btn.disabled = true;
+  btn.textContent = 'Sending code...';
+
+  try {
+    const isReg = /^RA\d{14}$/i.test(inputVal);
+    const payload = isReg ? { reg_no: inputVal } : { email: inputVal };
+
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to process request.');
+    }
+
+    resetTargetEmail = data.email || inputVal;
+    showAlert('forgotAlert', data.message || 'Reset code sent if account exists.', 'info');
+
+    // Show reset inputs
+    document.getElementById('forgotReqForm').style.display = 'none';
+    document.getElementById('forgotResetForm').style.display = 'block';
+
+  } catch (err) {
+    showAlert('forgotAlert', err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send Reset Code';
+  }
+}
+
+async function handleResetPassword(e) {
+  e.preventDefault();
+  hideAlert('forgotAlert');
+
+  const otp = document.getElementById('resetOtp').value.trim();
+  const new_password = document.getElementById('resetNewPass').value;
+  const confirm_password = document.getElementById('resetConfirmPass').value;
+  const btn = document.getElementById('forgotResetBtn');
+
+  if (new_password !== confirm_password) {
+    showAlert('forgotAlert', 'New passwords do not match.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Updating password...';
+
+  try {
+    const res = await fetch('/api/auth/reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: resetTargetEmail,
+        otp,
+        new_password,
+        confirm_password
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Failed to reset password.');
+    }
+
+    showAlert('forgotAlert', 'Password reset successfully! Redirecting to login...', 'success');
+    setTimeout(() => {
+      showPanel('login');
+      showAlert('loginAlert', 'Password updated! Please login with your new password.', 'success');
+    }, 1500);
+
+  } catch (err) {
+    showAlert('forgotAlert', err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Update Password';
   }
 }
 </script>

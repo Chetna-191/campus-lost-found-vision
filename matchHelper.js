@@ -1,6 +1,11 @@
 const supabase = require('./db');
 
-const MATCH_THRESHOLD = 80; // 80% similarity threshold
+const MATCH_THRESHOLD = 80; // 80% similarity threshold for image-image
+const TEXT_IMAGE_MATCH_THRESHOLD = process.env.TEXT_IMAGE_MATCH_THRESHOLD
+    ? (parseFloat(process.env.TEXT_IMAGE_MATCH_THRESHOLD) <= 1
+        ? parseFloat(process.env.TEXT_IMAGE_MATCH_THRESHOLD) * 100
+        : parseFloat(process.env.TEXT_IMAGE_MATCH_THRESHOLD))
+    : 22;
 
 /**
  * Evaluates matches for a reported item and creates item_match and notification records
@@ -12,6 +17,7 @@ const MATCH_THRESHOLD = 80; // 80% similarity threshold
  * @param {number} params.similarity
  * @param {string} [params.lostDesc]
  * @param {string} [params.foundDesc]
+ * @param {number} [params.threshold]
  * @returns {Promise<Object|null>}
  */
 async function recordMatchAndNotify({
@@ -21,9 +27,10 @@ async function recordMatchAndNotify({
     foundUserId,
     similarity,
     lostDesc = '',
-    foundDesc = ''
+    foundDesc = '',
+    threshold = MATCH_THRESHOLD
 }) {
-    if (similarity < MATCH_THRESHOLD) {
+    if (similarity < threshold) {
         return null;
     }
 
@@ -104,5 +111,6 @@ async function recordMatchAndNotify({
 
 module.exports = {
     MATCH_THRESHOLD,
+    TEXT_IMAGE_MATCH_THRESHOLD,
     recordMatchAndNotify,
 };

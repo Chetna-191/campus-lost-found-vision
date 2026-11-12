@@ -288,6 +288,10 @@
                 <span class="btn-head">👤 Login: Priya Verma</span>
                 <span class="btn-sub">Found Bag Finder (IT Dept)</span>
               </button>
+              <button class="demo-btn highlight" id="demoLoginAdmin" style="background:#16283f; color:#fff;">
+                <span class="btn-head">🛡️ Login: Admin Officer</span>
+                <span class="btn-sub">Campus Moderation Portal</span>
+              </button>
             </div>
           </div>
 
@@ -394,6 +398,11 @@
       updateUserDisplay();
       overlay.classList.remove('active');
 
+      if (data.user && data.user.is_admin) {
+        window.location.href = '/admin.html';
+        return;
+      }
+
       // If on auth.html or index.html, navigate to dashboard
       const currentPath = window.location.pathname;
       if (currentPath.includes('auth.html') || currentPath === '/' || currentPath.endsWith('index.html')) {
@@ -410,6 +419,8 @@
   // Bind Buttons
   document.getElementById('demoLoginRahul').addEventListener('click', () => performDemoLogin('rahul'));
   document.getElementById('demoLoginPriya').addEventListener('click', () => performDemoLogin('priya'));
+  const adminBtn = document.getElementById('demoLoginAdmin');
+  if (adminBtn) adminBtn.addEventListener('click', () => performDemoLogin('admin'));
 
   logoutBtn.addEventListener('click', () => {
     localStorage.removeItem('token');
@@ -484,11 +495,25 @@
           if (locationSelect && locationSelect.options.length > 1) {
             locationSelect.selectedIndex = 1; // Campus Location
           }
+
+          const colorInput = document.getElementById('color');
+          if (colorInput) colorInput.value = 'Navy Blue';
+
+          const brandInput = document.getElementById('brand');
+          if (brandInput) brandInput.value = 'Wildcraft';
+
+          const marksInput = document.getElementById('distinguishingMarks');
+          if (marksInput) marksInput.value = 'Small white scratch near front zipper';
+
+          const contentsInput = document.getElementById('contentsDetails');
+          if (contentsInput) contentsInput.value = 'Contains CS lecture notebook and blue water bottle';
+
           if (descInput) {
             const isFoundPage = window.location.pathname.includes('found');
             descInput.value = isFoundPage
               ? 'Found blue Wildcraft backpack left on the 2nd floor library study desk near window.'
               : 'Navy blue Wildcraft backpack with padded laptop compartment, forgotten in 2nd floor central library.';
+            descInput.dispatchEvent(new Event('input'));
           }
           if (dateInput) {
             dateInput.value = new Date().toISOString().split('T')[0];

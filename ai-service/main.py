@@ -1,11 +1,12 @@
 import io
 import logging
+import os
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
 import numpy as np
 import torch
-from fastapi import FastAPI, File, HTTPException, UploadFile, status
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image, UnidentifiedImageError
 from transformers import CLIPModel, CLIPProcessor
@@ -25,14 +26,25 @@ async def lifespan(app: FastAPI):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     logger.info(f"Using device: {device}")
 
-    # 1. Load YOLOv8 for object detection
-    logger.info("Loading YOLOv8 model (yolov8n.pt)...")
+    # 1. Load YOLOv8 for object detection (prefer custom fine-tuned campus_best.pt if present)
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    custom_model_path = os.path.join(base_dir, "models", "campus_best.pt")
+
+    if os.path.exists(custom_model_path):
+        logger.info(f"Loading custom fine-tuned YOLOv8 model from {custom_model_path}...")
+        yolo_path = custom_model_path
+        models["yolo_variant"] = "campus_best.pt (custom fine-tuned)"
+    else:
+        logger.info("Custom model (models/campus_best.pt) not found. Falling back to default pretrained 'yolov8n.pt'...")
+        yolo_path = "yolov8n.pt"
+        models["yolo_variant"] = "yolov8n.pt (default pretrained)"
+
     try:
-        yolo_model = YOLO("yolov8n.pt")
+        yolo_model = YOLO(yolo_path)
         models["yolo"] = yolo_model
-        logger.info("YOLOv8 loaded successfully.")
+        logger.info(f"YOLOv8 model ({models['yolo_variant']}) loaded successfully.")
     except Exception as e:
-        logger.error(f"Failed to load YOLOv8 model: {e}")
+        logger.error(f"Failed to load YOLOv8 model from {yolo_path}: {e}")
         raise e
 
     # 2. Load CLIP model and processor for embeddings & similarity
@@ -133,6 +145,36 @@ def compute_clip_embedding(image: Image.Image) -> torch.Tensor:
     return image_features
 
 
+def compute_clip_text_embedding(text: str) -> torch.Tensor:
+    """Computes a normalized CLIP text embedding."""
+    clip_model = models.get("clip_model")
+    clip_processor = models.get("clip_processor")
+    device = models.get("device", "cpu")
+
+    if clip_model is None or clip_processor is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="CLIP model is not initialized.",
+        )
+
+    inputs = clip_processor(text=[text], return_tensors="pt", padding=True, truncation=True).to(device)
+    with torch.no_grad():
+        outputs = clip_model.get_text_features(**inputs)
+        if isinstance(outputs, torch.Tensor):
+            text_features = outputs
+        elif hasattr(outputs, "text_embeds") and outputs.text_embeds is not None:
+            text_features = outputs.text_embeds
+        elif hasattr(outputs, "pooler_output") and outputs.pooler_output is not None:
+            text_features = outputs.pooler_output
+        else:
+            text_features = outputs[0]
+
+        # Normalize embedding vector to unit length
+        text_features = text_features / text_features.norm(p=2, dim=-1, keepdim=True)
+
+    return text_features
+
+
 @app.get("/")
 def health_check():
     """Health check endpoint to verify that service and models are operational."""
@@ -144,7 +186,7 @@ def health_check():
         "service": "campus-lostfound-ai",
         "device": models.get("device", "cpu"),
         "models": {
-            "yolov8": "ready" if is_yolo_ready else "not_loaded",
+            "yolov8": models.get("yolo_variant", "ready" if is_yolo_ready else "not_loaded"),
             "clip": "ready" if is_clip_ready else "not_loaded",
         },
     }
@@ -268,4 +310,46 @@ async def compare_images(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Image comparison failed: {str(e)}",
+        )
+
+
+@app.post("/compare-text")
+async def compare_text_and_image(
+    text: str = Form(..., description="Text query or descriptive details of the item"),
+    file: UploadFile = File(..., description="Image file to compare against the text query"),
+):
+    """
+    Accepts a text query and an image file, computes CLIP text embedding and image embedding,
+    and returns their cosine similarity.
+    """
+    if not text or not text.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Text description must not be empty.",
+        )
+
+    image = await load_image_from_upload(file)
+
+    try:
+        text_feat = compute_clip_text_embedding(text.strip())
+        image_feat = compute_clip_embedding(image)
+
+        # Both text_feat and image_feat are L2 normalized unit vectors
+        cosine_sim = torch.nn.functional.cosine_similarity(text_feat, image_feat, dim=-1).item()
+
+        # Clamp cosine similarity between 0.0 and 1.0 and scale to 0 - 100 percentage
+        clamped_sim = max(0.0, min(1.0, float(cosine_sim)))
+        similarity_score = round(clamped_sim * 100.0, 2)
+
+        return {
+            "similarity": similarity_score,
+            "raw_cosine_similarity": round(float(cosine_sim), 4),
+        }
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        logger.error(f"Error comparing text and image: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Text-image comparison failed: {str(e)}",
         )

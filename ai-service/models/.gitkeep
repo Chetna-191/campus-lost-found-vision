@@ -1,0 +1,3 @@
+# Directory for fine-tuned custom YOLOv8 models (e.g. campus_best.pt)
+# .pt files are ignored by git
+
