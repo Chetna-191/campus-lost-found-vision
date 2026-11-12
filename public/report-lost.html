@@ -463,19 +463,47 @@
           <input type="date" id="dateLost" name="date_lost" required>
         </div>
 
-        <div class="form-group">
-          <label for="description">Item Description &amp; Identifying Details <span class="req">*</span></label>
-          <textarea id="description" name="description" placeholder="Provide distinct characteristics, color, brand, stickers, unique scratches, or contents inside..." required></textarea>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="color">Item Color <span class="req">*</span></label>
+            <input type="text" id="color" name="color" placeholder="e.g. Navy Blue, Matte Black" required>
+          </div>
+
+          <div class="form-group">
+            <label for="brand">Brand / Make <span class="req">*</span></label>
+            <input type="text" id="brand" name="brand" placeholder="e.g. Wildcraft, Apple, Dell, or Unknown" required>
+          </div>
         </div>
 
         <div class="form-group">
-          <label>Photo (Optional, but recommended)</label>
+          <label for="distinguishingMarks">Distinguishing Marks / Scratches / Stickers <span class="req">*</span></label>
+          <input type="text" id="distinguishingMarks" name="distinguishing_marks" placeholder="e.g. Scratch on front zipper, sticker on lid, none" required>
+          <div style="font-size:11.5px; color:#7a7a72; margin-top:4px;">Unique visual details that distinguish your item from identical models (write "None" if none).</div>
+        </div>
+
+        <div class="form-group">
+          <label for="contentsDetails">Contents / Compartment Details <span class="req">*</span></label>
+          <input type="text" id="contentsDetails" name="contents_details" placeholder="e.g. Contains CS notebook, blue Milton bottle, keys, or none" required>
+          <div style="font-size:11.5px; color:#7a7a72; margin-top:4px;">Specific items inside or attached accessories (write "None" if none).</div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Item Description <span class="req">*</span></label>
+          <textarea id="description" name="description" minlength="20" placeholder="Provide distinct characteristics, where you remember leaving it, identifying features... (minimum 20 characters)" required></textarea>
+          <div style="font-size:11.5px; color:#7a7a72; margin-top:4px; display:flex; justify-content:space-between;">
+            <span>Minimum 20 characters required.</span>
+            <span id="charCountSpan">0 / 20 chars</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Photo (Optional)</label>
           <div class="upload-area" id="dropArea" onclick="document.getElementById('photoInput').click()">
             <div class="upload-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
             </div>
             <div class="upload-text"><span>Click to upload</span> or drag and drop</div>
-            <div class="upload-hint">PNG, JPG, JPEG or WEBP (Max 5MB)</div>
+            <div class="upload-hint">PNG, JPG, JPEG or WEBP (Optional — AI matches with text details if omitted)</div>
           </div>
           <input type="file" id="photoInput" name="photo" accept="image/*">
 
@@ -511,7 +539,29 @@ document.addEventListener('DOMContentLoaded', () => {
   setDefaultDate();
   loadDropdownData();
   setupDragAndDrop();
+  setupCharCounter();
 });
+
+function setupCharCounter() {
+  const descEl = document.getElementById('description');
+  const countSpan = document.getElementById('charCountSpan');
+  if (!descEl || !countSpan) return;
+
+  const updateCount = () => {
+    const len = descEl.value.trim().length;
+    countSpan.textContent = `${len} / 20 chars`;
+    if (len >= 20) {
+      countSpan.style.color = '#15803d';
+      countSpan.style.fontWeight = '600';
+    } else {
+      countSpan.style.color = '#9A1A1B';
+      countSpan.style.fontWeight = 'normal';
+    }
+  };
+
+  descEl.addEventListener('input', updateCount);
+  updateCount();
+}
 
 function setupUserBadge() {
   const userJson = localStorage.getItem('user');
@@ -719,11 +769,20 @@ async function handleFormSubmit(e) {
   const category_id = document.getElementById('categoryId').value;
   const location_id = document.getElementById('locationId').value;
   const date_lost = document.getElementById('dateLost').value;
+  const color = document.getElementById('color').value.trim();
+  const brand = document.getElementById('brand').value.trim();
+  const distinguishing_marks = document.getElementById('distinguishingMarks').value.trim();
+  const contents_details = document.getElementById('contentsDetails').value.trim();
   const description = document.getElementById('description').value.trim();
   const submitBtn = document.getElementById('submitBtn');
 
-  if (!category_id || !location_id || !date_lost || !description) {
-    showAlert('Please fill in all required fields.');
+  if (!category_id || !location_id || !date_lost || !color || !brand || !distinguishing_marks || !contents_details) {
+    showAlert('Please fill in all required detail fields (Category, Location, Date, Color, Brand, Distinguishing marks, and Contents).');
+    return;
+  }
+
+  if (description.length < 20) {
+    showAlert('Description must be at least 20 characters long. Please describe your item in more detail.');
     return;
   }
 
@@ -731,6 +790,10 @@ async function handleFormSubmit(e) {
   formData.append('category_id', category_id);
   formData.append('location_id', location_id);
   formData.append('date_lost', date_lost);
+  formData.append('color', color);
+  formData.append('brand', brand);
+  formData.append('distinguishing_marks', distinguishing_marks);
+  formData.append('contents_details', contents_details);
   formData.append('description', description);
 
   if (selectedFile) {
@@ -786,6 +849,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 </script>
+<script src="/nav-admin.js"></script>
 <script src="/demo-bar.js"></script>
 </body>
 </html>
