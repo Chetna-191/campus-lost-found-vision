@@ -1,5 +1,15 @@
 node_modules/
 .env
+venv/
 ai-service/venv/
+scripts/train_yolo/venv/
 __pycache__/
 *.pt
+ai-service/models/*.pt
+datasets/
+merged_dataset/
+runs/
+scripts/train_yolo/datasets/
+scripts/train_yolo/merged_dataset/
+scripts/train_yolo/runs/
+.ipynb_checkpoints/
