@@ -4,7 +4,7 @@ const supabase = require('../db');
 const verifyToken = require('../middleware/auth');
 const uploadImage = require('../uploadHelper');
 const { detectImage, findMatches, mapClassToCategoryId } = require('../aiService');
-const { recordMatchAndNotify } = require('../matchHelper');
+const { recordMatchAndNotify, MATCH_THRESHOLD, TEXT_IMAGE_MATCH_THRESHOLD } = require('../matchHelper');
 
 const router = express.Router();
 
@@ -90,11 +90,14 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
 
         const createdItem = data[0];
 
-        // 4. Save matches >= 80% to item_match & notify both users
+        // 4. Save matches (>= 80% for image-image, or >= TEXT_IMAGE_MATCH_THRESHOLD for text-image) & notify both users
         const savedMatches = [];
         if (potentialMatches && potentialMatches.length > 0) {
             for (const match of potentialMatches) {
-                if (match.similarity >= 80 && match.item) {
+                const isTextImage = match.matchType === 'text-image';
+                const threshold = isTextImage ? TEXT_IMAGE_MATCH_THRESHOLD : MATCH_THRESHOLD;
+
+                if (match.similarity >= threshold && match.item) {
                     const matchRecord = await recordMatchAndNotify({
                         lostItemId: match.item.lost_item_id,
                         foundItemId: createdItem.found_item_id,
@@ -102,7 +105,8 @@ router.post('/', verifyToken, upload.single('photo'), async (req, res) => {
                         foundUserId: user_id,
                         similarity: match.similarity,
                         lostDesc: match.item.description,
-                        foundDesc: createdItem.description
+                        foundDesc: createdItem.description,
+                        threshold: threshold
                     });
                     if (matchRecord) {
                         savedMatches.push(matchRecord);
