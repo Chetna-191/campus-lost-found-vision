@@ -12,3 +12,4 @@ fix(admin): update match status handler to use lost_item_id and found_item_id - 
 refactor(admin): standardize Returned status casing across item and match updates - 2026-11-14 11:37:00
 feat(admin): provide backward-compatible UI aliases for admin portal compatibility - 2026-11-14 11:37:00
 test(e2e): add end-to-end integration test suite for roster whitelist and OTP - 2026-11-14 11:37:00
+test(e2e): verify YOLOv8 object detection and category auto-suggest on found items - 2026-11-14 11:37:00
