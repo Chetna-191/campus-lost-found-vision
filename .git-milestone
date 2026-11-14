@@ -14,3 +14,4 @@ feat(admin): provide backward-compatible UI aliases for admin portal compatibili
 test(e2e): add end-to-end integration test suite for roster whitelist and OTP - 2026-11-14 11:37:00
 test(e2e): verify YOLOv8 object detection and category auto-suggest on found items - 2026-11-14 11:37:00
 test(e2e): verify in-app chat sliding window rate limiter and character limits - 2026-11-14 11:37:00
+test(e2e): add handover resolution and returned item status verification - 2026-11-14 11:37:00
