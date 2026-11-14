@@ -2,3 +2,4 @@ feat(ai): integrate text-only lost item lookup with CLIP text-to-image compariso
 feat(ai): enforce TEXT_IMAGE_MATCH_THRESHOLD for text candidates in findMatches - 2026-11-14 11:36:58
 feat(ai): implement top-3 candidate ranking for text-to-image candidate retrieval - 2026-11-14 11:36:59
 refactor(ai): explicitly tag matchType as image-image for visual comparisons - 2026-11-14 11:36:59
+fix(auth): support verified admin JWT tokens in requireAdmin middleware - 2026-11-14 11:36:59
