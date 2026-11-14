@@ -25,6 +25,12 @@ async function requireAdmin(req, res, next) {
             .eq('user_id', decoded.user_id)
             .maybeSingle();
 
+        // If verified JWT token already has is_admin: true, allow access
+        if (decoded.is_admin) {
+            req.adminUser = user || { user_id: decoded.user_id, reg_no: decoded.reg_no, is_admin: true };
+            return next();
+        }
+
         if (error || !user || !user.is_admin) {
             return res.status(403).json({ error: 'Access denied. Administrator privileges required.' });
         }

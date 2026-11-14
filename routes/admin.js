@@ -78,13 +78,14 @@ router.get('/lost-items', async (req, res) => {
         let query = supabase
             .from('lost_item')
             .select(`
-                lost_id,
-                title,
+                lost_item_id,
                 description,
                 color,
                 brand,
+                distinguishing_marks,
+                contents_details,
                 status,
-                photo_url,
+                image_url,
                 created_at,
                 category:category_id (category_name),
                 location:location_id (location_name),
@@ -94,13 +95,21 @@ router.get('/lost-items', async (req, res) => {
 
         if (q && q.trim()) {
             const searchTerm = q.trim();
-            query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+            query = query.or(`description.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%,color.ilike.%${searchTerm}%`);
         }
 
         const { data, error } = await query;
         if (error) throw error;
 
-        res.json(data || []);
+        // Provide real schema columns and backward-compatible UI aliases (lost_id, title, photo_url)
+        const formatted = (data || []).map(item => ({
+            ...item,
+            lost_id: item.lost_item_id,
+            title: item.brand ? `${item.brand} (${item.category?.category_name || 'Item'})` : (item.description || 'Lost Item'),
+            photo_url: item.image_url
+        }));
+
+        res.json(formatted);
     } catch (err) {
         console.error('Admin list lost items error:', err);
         res.status(500).json({ error: err.message });
@@ -114,11 +123,10 @@ router.get('/found-items', async (req, res) => {
         let query = supabase
             .from('found_item')
             .select(`
-                found_id,
-                title,
+                found_item_id,
                 description,
                 status,
-                photo_url,
+                image_url,
                 created_at,
                 category:category_id (category_name),
                 location:location_id (location_name),
@@ -128,13 +136,21 @@ router.get('/found-items', async (req, res) => {
 
         if (q && q.trim()) {
             const searchTerm = q.trim();
-            query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`);
+            query = query.or(`description.ilike.%${searchTerm}%`);
         }
 
         const { data, error } = await query;
         if (error) throw error;
 
-        res.json(data || []);
+        // Provide real schema columns and backward-compatible UI aliases (found_id, title, photo_url)
+        const formatted = (data || []).map(item => ({
+            ...item,
+            found_id: item.found_item_id,
+            title: item.category?.category_name || 'Found Item',
+            photo_url: item.image_url
+        }));
+
+        res.json(formatted);
     } catch (err) {
         console.error('Admin list found items error:', err);
         res.status(500).json({ error: err.message });
@@ -152,15 +168,15 @@ router.delete('/items/:type/:id', async (req, res) => {
         }
 
         if (type === 'lost') {
-            // Delete associated matches first
-            await supabase.from('item_match').delete().eq('lost_id', itemId);
-            const { error } = await supabase.from('lost_item').delete().eq('lost_id', itemId);
+            // Delete associated matches first using real foreign key lost_item_id
+            await supabase.from('item_match').delete().eq('lost_item_id', itemId);
+            const { error } = await supabase.from('lost_item').delete().eq('lost_item_id', itemId);
             if (error) throw error;
             return res.json({ message: `Lost item #${itemId} deleted successfully.` });
         } else if (type === 'found') {
-            // Delete associated matches first
-            await supabase.from('item_match').delete().eq('found_id', itemId);
-            const { error } = await supabase.from('found_item').delete().eq('found_id', itemId);
+            // Delete associated matches first using real foreign key found_item_id
+            await supabase.from('item_match').delete().eq('found_item_id', itemId);
+            const { error } = await supabase.from('found_item').delete().eq('found_item_id', itemId);
             if (error) throw error;
             return res.json({ message: `Found item #${itemId} deleted successfully.` });
         } else {
@@ -182,19 +198,39 @@ router.get('/matches', async (req, res) => {
                 similarity_score,
                 match_status,
                 created_at,
-                lost_item:lost_id (
-                    lost_id, title, photo_url, status,
+                lost_item:lost_item_id (
+                    lost_item_id, description, image_url, status,
+                    category:category_id (category_name),
                     user:user_id (first_name, last_name, reg_no, email)
                 ),
-                found_item:found_id (
-                    found_id, title, photo_url, status,
+                found_item:found_item_id (
+                    found_item_id, description, image_url, status,
+                    category:category_id (category_name),
                     user:user_id (first_name, last_name, reg_no, email)
                 )
             `)
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        res.json(data || []);
+
+        // Provide real schema columns and backward-compatible UI aliases
+        const formatted = (data || []).map(m => ({
+            ...m,
+            lost_item: m.lost_item ? {
+                ...m.lost_item,
+                lost_id: m.lost_item.lost_item_id,
+                title: m.lost_item.description || (m.lost_item.category?.category_name || 'Lost Item'),
+                photo_url: m.lost_item.image_url
+            } : null,
+            found_item: m.found_item ? {
+                ...m.found_item,
+                found_id: m.found_item.found_item_id,
+                title: m.found_item.description || (m.found_item.category?.category_name || 'Found Item'),
+                photo_url: m.found_item.image_url
+            } : null
+        }));
+
+        res.json(formatted);
     } catch (err) {
         console.error('Admin list matches error:', err);
         res.status(500).json({ error: err.message });
@@ -212,14 +248,15 @@ router.patch('/matches/:id/status', async (req, res) => {
         }
 
         const validStatuses = ['Pending', 'Confirmed', 'Rejected', 'Returned', 'Closed'];
-        if (!status || !validStatuses.includes(status)) {
+        const cleanStatus = status ? status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() : '';
+        if (!validStatuses.includes(cleanStatus)) {
             return res.status(400).json({ error: `Status must be one of: ${validStatuses.join(', ')}` });
         }
 
-        // Fetch match details
+        // Fetch match details using real foreign keys lost_item_id and found_item_id
         const { data: match, error: fetchErr } = await supabase
             .from('item_match')
-            .select('match_id, lost_id, found_id, match_status')
+            .select('match_id, lost_item_id, found_item_id, match_status')
             .eq('match_id', matchId)
             .single();
 
@@ -230,23 +267,23 @@ router.patch('/matches/:id/status', async (req, res) => {
         // Update match status
         const { data: updatedMatch, error: updateErr } = await supabase
             .from('item_match')
-            .update({ match_status: status })
+            .update({ match_status: cleanStatus })
             .eq('match_id', matchId)
             .select()
             .single();
 
         if (updateErr) throw updateErr;
 
-        // If returned, update both lost and found item statuses
-        if (status === 'Returned') {
+        // If returned, update both lost and found item statuses using real primary keys
+        if (cleanStatus === 'Returned') {
             await Promise.all([
-                supabase.from('lost_item').update({ status: 'returned' }).eq('lost_id', match.lost_id),
-                supabase.from('found_item').update({ status: 'returned' }).eq('found_id', match.found_id)
+                match.lost_item_id ? supabase.from('lost_item').update({ status: 'Returned' }).eq('lost_item_id', match.lost_item_id) : Promise.resolve(),
+                match.found_item_id ? supabase.from('found_item').update({ status: 'Returned' }).eq('found_item_id', match.found_item_id) : Promise.resolve()
             ]);
         }
 
         res.json({
-            message: `Match #${matchId} status updated to '${status}'.`,
+            message: `Match #${matchId} status updated to '${cleanStatus}'.`,
             match: updatedMatch
         });
     } catch (err) {
