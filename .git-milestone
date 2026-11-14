@@ -6,3 +6,4 @@ fix(auth): support verified admin JWT tokens in requireAdmin middleware - 2026-1
 refactor(admin): align lost_item schema columns in GET /api/admin/lost-items - 2026-11-14 11:36:59
 refactor(admin): update search filters for lost items in admin routes - 2026-11-14 11:36:59
 refactor(admin): align found_item schema columns in GET /api/admin/found-items - 2026-11-14 11:36:59
+refactor(admin): align item_match relations and foreign keys in admin routes - 2026-11-14 11:36:59
