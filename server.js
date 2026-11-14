@@ -15,6 +15,9 @@ const adminRoutes = require('./routes/admin');
 
 const app = express();
 
+// Trust reverse proxy (e.g. Render, Heroku, Nginx) so express-rate-limit detects client IP
+app.set('trust proxy', 1);
+
 // Security Headers (CSP set to false to accommodate vanilla inline scripts)
 app.use(helmet({
     contentSecurityPolicy: false,
@@ -48,7 +51,11 @@ app.get('/api/config', (req, res) => {
     });
 });
 
-// Test API route
+// Test API & Health routes (Render / Load balancer health check)
+app.get('/health', (req, res) => {
+    res.json({ status: 'healthy', service: 'Campus Lost & Found API' });
+});
+
 app.get('/api/health', (req, res) => {
     res.json({ status: 'healthy', service: 'Campus Lost & Found API' });
 });

@@ -40,20 +40,42 @@ Create a `.env` file in `campus-lostfound-backend/` based on `.env.example`:
 
 | Variable | Description | Default / Example |
 |---|---|---|
+| `PORT` | Node.js Express server port | `5050` (or injected by Render) |
+| `NODE_ENV` | Environment mode (`development` / `production`) | `development` |
+| `AI_SERVICE_URL` | URL of the AI FastAPI microservice | `http://127.0.0.1:8000` (or your HF Space URL) |
+| `CORS_ORIGIN` | Allowed CORS origins (comma-separated or `*`) | `*` (or your production domain) |
 | `SUPABASE_URL` | Supabase Project REST URL | `https://xxxx.supabase.co` |
 | `SUPABASE_KEY` | Supabase Anon or Service Role Key | `eyJh...` |
 | `JWT_SECRET` | Secret key for signing JWT tokens | `min_32_chars_random_secret` |
-| `PORT` | Node.js Express server port | `5050` |
-| `NODE_ENV` | Environment mode (`development` / `production`) | `development` |
-| `CORS_ORIGIN` | Allowed CORS origins (comma-separated or `*`) | `*` |
 | `DEMO_MODE` | Enables 1-click demo login & presentation toolbar | `false` (set `true` for demo) |
 | `TEXT_IMAGE_MATCH_THRESHOLD` | Cosine similarity threshold for text-to-photo matching | `22` |
-| `SMTP_HOST` | SMTP server host (e.g., Gmail / Outlook) | `smtp.gmail.com` (optional in dev) |
+| `SMTP_HOST` | SMTP server host (e.g., Gmail) | `smtp.gmail.com` |
 | `SMTP_PORT` | SMTP port | `587` |
 | `SMTP_SECURE` | Use SSL (`true` for 465, `false` for 587) | `false` |
-| `SMTP_USER` | Email address for sending OTPs | `lostfound@campus.edu` |
-| `SMTP_PASS` | App password / SMTP authentication token | `your_app_password` |
-| `SMTP_FROM` | Sender display name & email | `"Campus Lost & Found" <lostfound@campus.edu>` |
+| `SMTP_USER` | Email address for sending OTPs | `campus.lostfound.service@gmail.com` |
+| `SMTP_PASS` | 16-character Gmail App Password | `xxxx xxxx xxxx xxxx` |
+| `SMTP_FROM` | Sender display name & email | `"Campus Lost & Found" <campus.lostfound.service@gmail.com>` |
+
+### 📧 Production OTP Email Setup (Gmail App Password)
+In production (`NODE_ENV=production`), real 6-digit OTP emails are dispatched to students' college email addresses using Nodemailer over TLS/STARTTLS.
+
+To set up Gmail SMTP:
+1. Enable **2-Step Verification** on your Google Account:
+   - Go to [Google Account Security](https://myaccount.google.com/security).
+   - Turn on **2-Step Verification**.
+2. Generate an **App Password**:
+   - Go to [Google App Passwords](https://myaccount.google.com/apppasswords).
+   - App Name: `Campus Lost & Found`.
+   - Click **Create** to receive a 16-character password (e.g., `abcd efgh ijkl mnop`).
+3. Set the environment variables in your production host (or `.env`):
+   ```env
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=your-account@gmail.com
+   SMTP_PASS=abcdefghijklmnop
+   SMTP_FROM="Campus Lost & Found" <your-account@gmail.com>
+   ```
 
 > **Note on OTP in Development**: If SMTP credentials are not configured and `NODE_ENV != 'production'`, 6-digit OTP codes are logged directly to the server terminal:
 > ```
@@ -124,6 +146,90 @@ Open your browser and navigate to:
 ```
 http://localhost:5050
 ```
+
+---
+
+## ☁️ Production Deployment Guide
+
+The platform is designed as a decoupled cloud architecture:
+- **AI Microservice**: Containerized via Docker and deployed on **Hugging Face Spaces** (free CPU tier).
+- **Backend & Web Portal**: Deployed as a Web Service on **Render** (Node.js runtime with proxy trust).
+
+```
+[ User Browser ] ────> [ Render Web Service (Node.js + Frontend) ]
+                               │                 │
+                               ▼                 ▼
+                     [ Supabase DB/Storage ]   [ Hugging Face Space (FastAPI Docker) ]
+```
+
+---
+
+### Step 1: Deploy AI Microservice to Hugging Face Spaces
+
+1. **Create Space**:
+   - Go to [Hugging Face Spaces](https://huggingface.co/new-space).
+   - Space Name: `campus-lostfound-ai` (or your preferred name).
+   - Space SDK: Select **Docker** &rarr; **Blank**.
+   - License: `MIT`.
+   - Visibility: `Public`.
+2. **Push the AI Service Code**:
+   - Clone your new HF Space repository locally, or push `ai-service/` contents directly:
+     ```bash
+     cd campus-lostfound-backend/ai-service
+     git init
+     git remote add space https://huggingface.co/spaces/<your-username>/campus-lostfound-ai
+     git add Dockerfile README.md main.py requirements.txt models/campus_best.pt
+     git commit -m "feat: deploy campus lost found AI microservice"
+     git push space main
+     ```
+3. **Verify Space Startup**:
+   - The `Dockerfile` will automatically install CPU-only PyTorch, pre-download CLIP weights during build, and launch Uvicorn on port `7860`.
+   - Once the build succeeds, test the direct URL:
+     ```bash
+     curl https://<your-username>-campus-lostfound-ai.hf.space/
+     # Returns: {"status":"ok","service":"campus-lostfound-ai","models":{...}}
+     ```
+   - Copy this base URL (`https://<your-username>-campus-lostfound-ai.hf.space`) for the next step.
+
+---
+
+### Step 2: Deploy Backend & Web Portal to Render
+
+1. **Create Web Service on Render**:
+   - Go to the [Render Dashboard](https://dashboard.render.com/) and click **New +** &rarr; **Web Service**.
+   - Connect your GitHub repository (`campus-lost-found-vision`).
+   - Root Directory: leave blank (or `./`).
+2. **Configure Build & Start Commands**:
+   - **Environment**: `Node`
+   - **Branch**: `main`
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server.js`
+   - **Health Check Path**: `/health`
+3. **Configure Environment Variables in Render**:
+   Under the **Environment** tab, add the following variables:
+
+   | Key | Value | Notes |
+   |---|---|---|
+   | `NODE_ENV` | `production` | Enables production security & real email delivery |
+   | `PORT` | `5050` | (Render will route incoming traffic to this port) |
+   | `AI_SERVICE_URL` | `https://<your-username>-campus-lostfound-ai.hf.space` | URL of your Hugging Face Space from Step 1 |
+   | `SUPABASE_URL` | `https://xxxx.supabase.co` | Your Supabase project URL |
+   | `SUPABASE_KEY` | `eyJh...` | Supabase service-role or anon key |
+   | `JWT_SECRET` | `your_production_jwt_secret_min_32_chars` | Used for student and admin sessions |
+   | `CORS_ORIGIN` | `*` | Or specify your Render domain |
+   | `TEXT_IMAGE_MATCH_THRESHOLD` | `22` | CLIP matching threshold |
+   | `SMTP_HOST` | `smtp.gmail.com` | For student verification emails |
+   | `SMTP_PORT` | `587` | Standard STARTTLS port |
+   | `SMTP_SECURE` | `false` | False for 587; true for 465 |
+   | `SMTP_USER` | `your-service@gmail.com` | Gmail account |
+   | `SMTP_PASS` | `your-16-char-app-password` | Google App Password (no spaces) |
+   | `SMTP_FROM` | `"Campus Lost & Found" <your-service@gmail.com>` | Sender header |
+
+4. **Deploy & Verify**:
+   - Click **Create Web Service**.
+   - Render will build, launch, and verify the `/health` endpoint.
+   - Because `app.set('trust proxy', 1)` is enabled in `server.js`, `express-rate-limit` will accurately record real client IPs behind Render's load balancer without false rate limit triggers.
+   - Open your deployed Render URL (e.g. `https://campus-lostfound.onrender.com`) in your browser to access the live platform.
 
 ---
 
