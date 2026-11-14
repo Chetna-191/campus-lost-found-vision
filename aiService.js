@@ -226,31 +226,35 @@ async function findMatches(sourceImageBuffer, targetTable, options = {}) {
         }
 
         const { data: candidates, error } = await query;
-        if (error || !candidates || candidates.length === 0) {
-            return [];
+        if (error) {
+            console.error(`[AI Service] Error querying ${targetTable} candidates:`, error.message);
         }
 
         const matches = [];
 
-        // Compare source image against each candidate image
-        for (const candidate of candidates) {
-            if (!candidate.image_url) continue;
+        // Compare source image against each candidate image (image-to-image)
+        if (candidates && candidates.length > 0) {
+            for (const candidate of candidates) {
+                if (!candidate.image_url) continue;
 
-            const candidateBuffer = await fetchImageBuffer(candidate.image_url);
-            if (!candidateBuffer) continue;
+                const candidateBuffer = await fetchImageBuffer(candidate.image_url);
+                if (!candidateBuffer) continue;
 
-            const compResult = await compareImages(sourceImageBuffer, candidateBuffer);
-            if (compResult && compResult.similarity >= minSimilarity) {
-                matches.push({
-                    item: candidate,
-                    similarity: compResult.similarity,
-                    raw_cosine_similarity: compResult.raw_cosine_similarity,
-                });
+                const compResult = await compareImages(sourceImageBuffer, candidateBuffer);
+                if (compResult && compResult.similarity >= minSimilarity) {
+                    matches.push({
+                        item: candidate,
+                        similarity: compResult.similarity,
+                        raw_cosine_similarity: compResult.raw_cosine_similarity,
+                        matchType: 'image-image'
+                    });
+                }
             }
         }
 
-        // Sort descending by similarity
+        // Sort image matches descending by similarity and keep top `limit`
         matches.sort((a, b) => b.similarity - a.similarity);
+        const results = matches.slice(0, limit);
 
         // If targetTable is lost_item, also check text-only lost items (without photo)
         if (targetTable === 'lost_item') {
@@ -265,8 +269,10 @@ async function findMatches(sourceImageBuffer, targetTable, options = {}) {
                 textQuery = textQuery.eq('category_id', options.categoryId);
             }
 
-            const { data: textCandidates } = await textQuery;
-            if (textCandidates && textCandidates.length > 0) {
+            const { data: textCandidates, error: textErr } = await textQuery;
+            if (textErr) {
+                console.error(`[AI Service] Error querying text candidates from lost_item:`, textErr.message);
+            } else if (textCandidates && textCandidates.length > 0) {
                 const envThreshold = process.env.TEXT_IMAGE_MATCH_THRESHOLD
                     ? (parseFloat(process.env.TEXT_IMAGE_MATCH_THRESHOLD) <= 1
                         ? parseFloat(process.env.TEXT_IMAGE_MATCH_THRESHOLD) * 100
@@ -289,11 +295,11 @@ async function findMatches(sourceImageBuffer, targetTable, options = {}) {
 
                 // Keep only top 3 text-image candidates
                 textMatches.sort((a, b) => b.similarity - a.similarity);
-                matches.push(...textMatches.slice(0, 3));
+                results.push(...textMatches.slice(0, 3));
             }
         }
 
-        return matches.slice(0, limit);
+        return results;
     } catch (err) {
         console.error(`[AI Service] Error matching against ${targetTable}:`, err.message);
         return [];

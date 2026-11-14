@@ -1,0 +1,19 @@
+feat(ai): integrate text-only lost item lookup with CLIP text-to-image comparison - 2026-11-14 11:36:58
+feat(ai): enforce TEXT_IMAGE_MATCH_THRESHOLD for text candidates in findMatches - 2026-11-14 11:36:58
+feat(ai): implement top-3 candidate ranking for text-to-image candidate retrieval - 2026-11-14 11:36:59
+refactor(ai): explicitly tag matchType as image-image for visual comparisons - 2026-11-14 11:36:59
+fix(auth): support verified admin JWT tokens in requireAdmin middleware - 2026-11-14 11:36:59
+refactor(admin): align lost_item schema columns in GET /api/admin/lost-items - 2026-11-14 11:36:59
+refactor(admin): update search filters for lost items in admin routes - 2026-11-14 11:36:59
+refactor(admin): align found_item schema columns in GET /api/admin/found-items - 2026-11-14 11:36:59
+refactor(admin): align item_match relations and foreign keys in admin routes - 2026-11-14 11:36:59
+fix(admin): resolve foreign key cascades in DELETE /api/admin/items - 2026-11-14 11:36:59
+fix(admin): update match status handler to use lost_item_id and found_item_id - 2026-11-14 11:37:00
+refactor(admin): standardize Returned status casing across item and match updates - 2026-11-14 11:37:00
+feat(admin): provide backward-compatible UI aliases for admin portal compatibility - 2026-11-14 11:37:00
+test(e2e): add end-to-end integration test suite for roster whitelist and OTP - 2026-11-14 11:37:00
+test(e2e): verify YOLOv8 object detection and category auto-suggest on found items - 2026-11-14 11:37:00
+test(e2e): verify in-app chat sliding window rate limiter and character limits - 2026-11-14 11:37:00
+test(e2e): add handover resolution and returned item status verification - 2026-11-14 11:37:00
+docs(api): document text-image matching thresholds and admin schema alignment - 2026-11-14 11:37:01
+chore(release): milestone checkpoint for AI text matching and admin hardening - 2026-11-14 11:37:01
