@@ -7,3 +7,4 @@ refactor(admin): align lost_item schema columns in GET /api/admin/lost-items - 2
 refactor(admin): update search filters for lost items in admin routes - 2026-11-14 11:36:59
 refactor(admin): align found_item schema columns in GET /api/admin/found-items - 2026-11-14 11:36:59
 refactor(admin): align item_match relations and foreign keys in admin routes - 2026-11-14 11:36:59
+fix(admin): resolve foreign key cascades in DELETE /api/admin/items - 2026-11-14 11:36:59
