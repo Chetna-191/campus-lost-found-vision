@@ -1,1 +1,2 @@
 feat(ai): integrate text-only lost item lookup with CLIP text-to-image comparison - 2026-11-14 11:36:58
+feat(ai): enforce TEXT_IMAGE_MATCH_THRESHOLD for text candidates in findMatches - 2026-11-14 11:36:58
