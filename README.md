@@ -152,68 +152,104 @@ http://localhost:5050
 ## ☁️ Production Deployment Guide
 
 The platform is designed as a decoupled cloud architecture:
-- **AI Microservice**: Containerized via Docker and deployed on **Hugging Face Spaces** (free CPU tier).
-- **Backend & Web Portal**: Deployed as a Web Service on **Render** (Node.js runtime with proxy trust).
+- **Backend & Web Portal**: Deployed as a Web Service on **Render** (Node.js runtime with reverse proxy trust and automated Blueprint `render.yaml`).
+- **AI Microservice**: Can be run locally and exposed via Cloudflare Tunnel (`scripts/start-ai.ps1`) or containerized via Docker on **Hugging Face Spaces**.
 
 ```
-[ User Browser ] ────> [ Render Web Service (Node.js + Frontend) ]
+[ User Browser ] ────> [ Render Web Service (Node.js + Frontend) - Singapore ]
                                │                 │
                                ▼                 ▼
-                     [ Supabase DB/Storage ]   [ Hugging Face Space (FastAPI Docker) ]
+                     [ Supabase DB/Storage ]   [ AI Microservice (Cloudflare Tunnel or HF Space) ]
 ```
 
 ---
 
-### Step 1: Deploy AI Microservice to Hugging Face Spaces
+### Step 1: Start or Deploy the AI Microservice
 
+Choose **Option A** (Instant local GPU/CPU runner with Cloudflare Tunnel) or **Option B** (Free Cloud Docker on Hugging Face Spaces).
+
+#### Option A (Recommended for Local Dev & Testing): Cloudflare Tunnel
+A turnkey PowerShell script `scripts/start-ai.ps1` is provided to activate the Python environment, start Uvicorn in a dedicated window, launch Cloudflare Tunnel, and display the public URL:
+
+1. Run the script in PowerShell:
+   ```powershell
+   .\scripts\start-ai.ps1
+   ```
+2. The script:
+   - Activates `ai-service/venv`
+   - Starts Uvicorn on `http://127.0.0.1:8000` in a new window
+   - Launches `cloudflared tunnel --url http://127.0.0.1:8000`
+   - Automatically detects and copies the public `https://<random-subdomain>.trycloudflare.com` URL to your clipboard.
+3. Keep this terminal open while using the application. Paste this URL as `AI_SERVICE_URL` in your Render configuration.
+
+#### Option B: Cloud Docker on Hugging Face Spaces
 1. **Create Space**:
    - Go to [Hugging Face Spaces](https://huggingface.co/new-space).
-   - Space Name: `campus-lostfound-ai` (or your preferred name).
+   - Space Name: `campus-lostfound-ai`
    - Space SDK: Select **Docker** &rarr; **Blank**.
    - License: `MIT`.
    - Visibility: `Public`.
 2. **Push the AI Service Code**:
-   - Clone your new HF Space repository locally, or push `ai-service/` contents directly:
-     ```bash
-     cd campus-lostfound-backend/ai-service
-     git init
-     git remote add space https://huggingface.co/spaces/<your-username>/campus-lostfound-ai
-     git add Dockerfile README.md main.py requirements.txt models/campus_best.pt
-     git commit -m "feat: deploy campus lost found AI microservice"
-     git push space main
-     ```
-3. **Verify Space Startup**:
-   - The `Dockerfile` will automatically install CPU-only PyTorch, pre-download CLIP weights during build, and launch Uvicorn on port `7860`.
-   - Once the build succeeds, test the direct URL:
-     ```bash
-     curl https://<your-username>-campus-lostfound-ai.hf.space/
-     # Returns: {"status":"ok","service":"campus-lostfound-ai","models":{...}}
-     ```
-   - Copy this base URL (`https://<your-username>-campus-lostfound-ai.hf.space`) for the next step.
+   ```bash
+   cd campus-lostfound-backend/ai-service
+   git init
+   git remote add space https://huggingface.co/spaces/<your-username>/campus-lostfound-ai
+   git add Dockerfile README.md main.py requirements.txt models/campus_best.pt
+   git commit -m "feat: deploy campus lost found AI microservice"
+   git push space main
+   ```
+3. Copy your live Space URL (e.g., `https://<your-username>-campus-lostfound-ai.hf.space`) for `AI_SERVICE_URL`.
 
 ---
 
 ### Step 2: Deploy Backend & Web Portal to Render
 
-1. **Create Web Service on Render**:
-   - Go to the [Render Dashboard](https://dashboard.render.com/) and click **New +** &rarr; **Web Service**.
-   - Connect your GitHub repository (`campus-lost-found-vision`).
-   - Root Directory: leave blank (or `./`).
-2. **Configure Build & Start Commands**:
+#### Option 1: 1-Click Blueprint Deploy with `render.yaml` (Fastest)
+
+The repository includes a ready-to-use Render Blueprint specification (`render.yaml`):
+- **Region**: Singapore
+- **Plan**: Free Node Web Service
+- **Build**: `npm install`
+- **Start**: `npm start`
+- **Health Check**: `/health`
+- **Pre-configured Environment Variables**: All non-sensitive variables are populated (`NODE_ENV=production`, `DEMO_MODE=true`, `CORS_ORIGIN=*`, `TEXT_IMAGE_MATCH_THRESHOLD=22`, `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_SECURE=false`). Secret variables have `sync: false`, so Render simply prompts you to paste the values.
+
+**Deployment Steps**:
+1. Log in to [Render Dashboard](https://dashboard.render.com/).
+2. Click **New +** &rarr; **Blueprint**.
+3. Connect your repository `campus-lost-found-vision` and select the `main` branch.
+4. Render will read `render.yaml` and prompt you to input the values for the `sync: false` variables:
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+   - `JWT_SECRET`
+   - `AI_SERVICE_URL` (from Step 1)
+   - `SMTP_USER`
+   - `SMTP_PASS` (16-character Gmail App Password)
+   - `SMTP_FROM`
+5. Click **Apply**. Render will automatically provision, build, and deploy the service in Singapore!
+
+---
+
+#### Option 2: Manual Web Service Setup on Render
+
+1. Go to [Render Dashboard](https://dashboard.render.com/) and click **New +** &rarr; **Web Service**.
+2. Connect your GitHub repository (`campus-lost-found-vision`).
+3. Set the following configuration:
+   - **Name**: `campus-lostfound-backend`
+   - **Region**: `Singapore`
    - **Environment**: `Node`
    - **Branch**: `main`
    - **Build Command**: `npm install`
-   - **Start Command**: `node server.js`
+   - **Start Command**: `npm start`
    - **Health Check Path**: `/health`
-3. **Configure Environment Variables in Render**:
-   Under the **Environment** tab, add the following variables:
+4. Under the **Environment** tab, configure the environment variables:
 
    | Key | Value | Notes |
    |---|---|---|
    | `NODE_ENV` | `production` | Enables production security & real email delivery |
-   | `PORT` | `5050` | (Render will route incoming traffic to this port) |
-   | `AI_SERVICE_URL` | `https://<your-username>-campus-lostfound-ai.hf.space` | URL of your Hugging Face Space from Step 1 |
-   | `SUPABASE_URL` | `https://xxxx.supabase.co` | Your Supabase project URL |
+   | `DEMO_MODE` | `true` | Enables 1-click demo logins & presentation toolbar |
+   | `AI_SERVICE_URL` | `https://xxxx.trycloudflare.com` or HF Space URL | AI service URL from Step 1 |
+   | `SUPABASE_URL` | `https://xxxx.supabase.co` | Supabase project URL |
    | `SUPABASE_KEY` | `eyJh...` | Supabase service-role or anon key |
    | `JWT_SECRET` | `your_production_jwt_secret_min_32_chars` | Used for student and admin sessions |
    | `CORS_ORIGIN` | `*` | Or specify your Render domain |
@@ -225,11 +261,7 @@ The platform is designed as a decoupled cloud architecture:
    | `SMTP_PASS` | `your-16-char-app-password` | Google App Password (no spaces) |
    | `SMTP_FROM` | `"Campus Lost & Found" <your-service@gmail.com>` | Sender header |
 
-4. **Deploy & Verify**:
-   - Click **Create Web Service**.
-   - Render will build, launch, and verify the `/health` endpoint.
-   - Because `app.set('trust proxy', 1)` is enabled in `server.js`, `express-rate-limit` will accurately record real client IPs behind Render's load balancer without false rate limit triggers.
-   - Open your deployed Render URL (e.g. `https://campus-lostfound.onrender.com`) in your browser to access the live platform.
+5. Click **Create Web Service**. Render will build and deploy the application. Open your live `.onrender.com` URL to use the platform!
 
 ---
 
