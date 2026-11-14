@@ -10,3 +10,4 @@ refactor(admin): align item_match relations and foreign keys in admin routes - 2
 fix(admin): resolve foreign key cascades in DELETE /api/admin/items - 2026-11-14 11:36:59
 fix(admin): update match status handler to use lost_item_id and found_item_id - 2026-11-14 11:37:00
 refactor(admin): standardize Returned status casing across item and match updates - 2026-11-14 11:37:00
+feat(admin): provide backward-compatible UI aliases for admin portal compatibility - 2026-11-14 11:37:00
